@@ -210,7 +210,7 @@ function themeLabel(t) {
 //  旅行の設定 = この旅行だけのこと(内容・見た目・共有と保存・同期)
 //  アプリの設定 = すべての旅行に共通のこと(アプリの色・データ・同期サーバー)
 function renderTripSettings(t) {
-  return `<h2 class="title">旅行の設定</h2><p class="scope">この旅行「${esc(t.name)}」だけの設定です。</p>${tripSettings(t)}`;
+  return `<h2 class="title">「${esc(t.name)}」の設定</h2>${tripSettings(t)}`;
 }
 
 function renderAppPage() {
