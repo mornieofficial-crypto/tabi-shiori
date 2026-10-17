@@ -72,7 +72,7 @@ a { color: var(--accent-ink); }
 .nav button.active { background: var(--tint); color: var(--accent-ink); box-shadow: inset 0 0 0 1px var(--tint-line); }
 .nav .icon { font-size: 19px; line-height: 1.2; display: block; transition: transform .2s ease; }
 .nav button.active .icon { transform: translateY(-1px) scale(1.12); }
-body.has-nav #toastroot { bottom: calc(92px + env(safe-area-inset-bottom)); }
+body[data-view="trip"] #toastroot { bottom: calc(92px + env(safe-area-inset-bottom)); }
 .daytabs { display: flex; gap: 7px; overflow: auto; padding-bottom: 2px; }
 .daytabs button { flex: 1; min-width: 92px; padding: 11px 10px; border: 1px solid var(--line); background: #fff; border-radius: 12px; color: var(--sub); text-align: left; font-size: 12px; }
 .daytabs button.active { background: var(--accent-ink); color: #fff; border-color: var(--accent-ink); }
@@ -273,8 +273,6 @@ input[type="time"].field, input[type="date"].field { -webkit-appearance: none; a
 @media (prefers-reduced-motion: reduce) { .tripcard { transition: none; } }
 
 /* ホームの注釈は、タブバーの上(画面の下)に固定する */
-body[data-tab="home"] .foot { position: fixed; left: 0; right: 0; bottom: calc(92px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(247, 246, 242, 0), var(--base) 55%); }
-body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
 
 /* タブバーの線アイコン */
 .nav .icon { width: 24px; height: 24px; margin-bottom: 2px; }
@@ -317,9 +315,6 @@ body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-b
 /* チェックボタンのアイコンを丸の中心に置く */
 .iconbtn.check .ico { width: 20px; height: 20px; vertical-align: middle; }
 .place-actions { align-items: center; }
-/* アプリ名のヘッダーはホームだけ。他のタブではタブバーで戻れるので出さない */
-body:not([data-tab="home"]) .header { display: none; }
-body:not([data-tab="home"]) .wrap { padding-top: calc(10px + env(safe-area-inset-top)); }
 
 /* 候補の編集: 「写真を選ぶ」ボタンの文字を中央に(フォームのラベル用の指定が効いてずれていた) */
 .formitem label.btn { display: inline-flex; margin-bottom: 0; font-size: 12px; font-weight: 750; color: var(--accent-ink); }
@@ -339,4 +334,18 @@ body:not([data-tab="home"]) .wrap { padding-top: calc(10px + env(safe-area-inset
 .nav .icon { margin-bottom: 1px; }
 .navglass { top: 4px; bottom: 4px; border-radius: 999px; }
 body.has-nav #toastroot { bottom: calc(80px + env(safe-area-inset-bottom)); }
-body[data-tab="home"] .foot { bottom: calc(80px + env(safe-area-inset-bottom)); }
+
+/* ---- 階層ごとの見せ方 ----
+   list=旅行の一覧(アプリ名のヘッダー+歯車) / trip=旅行の中(下のタブ+左上の戻る) / app=アプリの設定(戻る) */
+#navroot { display: none; }
+body[data-view="trip"] #navroot { display: flex; }
+.backbtn { display: none; }
+body:not([data-view="list"]) .backbtn { display: inline-grid; position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 14px; z-index: 25; width: 42px; height: 42px; background: rgba(255, 255, 255, .8); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .backbtn { background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(18px) saturate(1.8); backdrop-filter: blur(18px) saturate(1.8); }
+}
+body:not([data-view="list"]) .header { display: none; }
+body:not([data-view="list"]) .wrap { padding-top: calc(60px + env(safe-area-inset-top)); }
+body[data-view="list"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+body[data-view="list"] .foot, body[data-view="app"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(247, 246, 242, 0), var(--base) 55%); }
+body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }

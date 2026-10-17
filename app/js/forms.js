@@ -49,6 +49,7 @@ export function tripForm(t) {
       } else {
         const trip = newTrip({ name, destination: formVal(f, 'destination'), date, days, memberNames: [formVal(f, 'p0') || 'わたし', formVal(f, 'p1') || '同行者'] });
         state.tab = 'schedule';
+        state.view = 'trip';
         state.activeDay = 1;
         addTrip(trip);
       }

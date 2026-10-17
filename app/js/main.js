@@ -11,6 +11,7 @@ const $ = (id) => document.getElementById(id);
 
 // 下のタブ: 選択の変化に合わせて、ガラスの丸を目的のタブへ滑らせる
 let navReady = false;
+let lastView = '';
 function updateNav() {
   const nav = $('navroot');
   if (!nav.firstChild) nav.innerHTML = renderNavInner();
@@ -24,7 +25,11 @@ function updateNav() {
     } else b.removeAttribute('aria-current');
   });
   const glass = nav.querySelector('.navglass');
-  if (!active || !glass) return;
+  if (!active || !glass || !active.offsetWidth) return; // 一覧・アプリ設定のときはバー自体が非表示
+  if (lastView !== state.view) {
+    navReady = false;
+    lastView = state.view;
+  }
   const x = active.offsetLeft;
   const moved = glass.dataset.x !== String(x);
   glass.style.width = active.offsetWidth + 'px';
@@ -44,7 +49,8 @@ addEventListener('resize', updateNav);
 function render() {
   const t = current();
   applyTheme(t);
-  document.body.classList.add('has-nav');
+  if (!t && state.view === 'trip') state.view = 'list';
+  document.body.dataset.view = state.view;
   document.body.dataset.tab = state.tab;
   document.body.dataset.bg = t ? t.background : 'plain';
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
@@ -155,7 +161,8 @@ async function importFile(file) {
   try {
     const trips = parseImport(await file.text());
     for (const t of trips) await addTrip(t, { select: trips.length === 1 });
-    state.tab = trips.length === 1 ? 'schedule' : 'home';
+    state.tab = 'schedule';
+    state.view = trips.length === 1 ? 'trip' : 'list';
     state.activeDay = 1;
     render();
     toast(`${trips.length}件の旅行を読み込みました`);
@@ -212,9 +219,10 @@ document.addEventListener('click', (e) => {
   const t = current();
   switch (a) {
     case 'close': return closeModal();
-    case 'trips': state.tab = 'home'; return render();
+    case 'go-list': state.view = 'list'; render(); return scrollTo(0, 0);
+    case 'open-app-settings': state.view = 'app'; render(); return scrollTo(0, 0);
     case 'new-trip': return tripForm();
-    case 'open-trip': selectTrip(id); state.activeDay = todayDayOrFirst(state.trips.find((x) => x.id === id)); state.tab = 'schedule'; render(); return scrollTo(0, 0);
+    case 'open-trip': selectTrip(id); state.view = 'trip'; state.activeDay = todayDayOrFirst(state.trips.find((x) => x.id === id)); state.tab = 'schedule'; render(); return scrollTo(0, 0);
     case 'import': return $('importFile').click();
     case 'export-all': download(`tabi-backup-${stamp()}.json`, serializeBackup(state.trips)); return toast('バックアップを保存したよ');
     case 'app-color': state.settings.accent = b.dataset.hex; saveSettings(); return render();

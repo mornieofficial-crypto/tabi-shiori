@@ -6,6 +6,8 @@ export const state = {
   trips: [],
   settings: { accent: DEFAULT_ACCENT },
   currentId: null,
+  // view: list=旅行の一覧 / trip=1つの旅行の中(下のタブ) / app=アプリの設定
+  view: 'list',
   tab: 'schedule',
   activeDay: 1,
   gearTab: 'list',
@@ -107,7 +109,8 @@ export async function load() {
   // 前回開いていた旅行を、そのまま開く
   const last = await db.getMeta('lastTrip');
   state.currentId = trips.some((t) => t.id === last) ? last : null;
-  state.tab = state.currentId ? 'schedule' : 'home';
+  state.view = state.currentId ? 'trip' : 'list';
+  state.tab = 'schedule';
   const s = await db.getMeta('settings');
   if (s && isHex(s.accent)) state.settings.accent = s.accent.toLowerCase();
 }

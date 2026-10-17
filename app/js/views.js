@@ -34,15 +34,11 @@ export function dateTitle(t, day) {
   return `${dt.getMonth() + 1}/${dt.getDate()}（${'日月火水木金土'[dt.getDay()]}）`;
 }
 
-// ホーム = 旅行の一覧だけ。アプリ全体の設定は「設定」タブへ
-function renderHome() {
+// 旅行の一覧(いちばん上の階層)。アプリの設定は右上の歯車から
+function renderList() {
   const trips = state.trips;
   return `<div class="sectionactions"><h2 class="title">あなたの旅行</h2><div class="flex"><button class="btn tiny" data-action="import">${ICON.upload} 読み込む</button><button class="btn tiny primary" data-action="new-trip">＋ 新しい旅行</button></div></div>
   ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。<div style="margin-top:14px"><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div></div>'}`;
-}
-
-function renderNoTrip() {
-  return `<div class="empty" style="margin-top:24px"><strong>旅行を選んでください</strong><button class="btn primary" data-tab="home">ホームで旅行を選ぶ</button></div>`;
 }
 
 function storageNotice() {
@@ -61,15 +57,14 @@ function renderTripCard(t) {
   return `<div class="card tripcard ${open ? 'selected' : ''}" role="button" tabindex="0" data-action="open-trip" data-id="${esc(t.id)}" aria-label="${esc(t.name)}を開く"><div class="listrow">${t.backgroundPhoto ? `<span class="thumb" style="background-image:url('${t.backgroundPhoto}')" role="img" aria-label="旅行の写真"></span>` : `<span class="emoji">${ICON.map}</span>`}<div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')}</div><div class="small">${esc(rangeText(t))}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div>${trashBtn('delete-trip', t.id, '旅行を削除')}</div></div>`;
 }
 
-// 下のタブは、旅行を開いていなくても常に表示する(ホーム・しおり・行きたい・準備・設定)
+// 下のタブは、1つの旅行の中だけ(予定・行きたい・準備・旅行の設定)。一覧とアプリの設定は別の階層
 // タブの線アイコン(絵文字ではなく、色と太さを揃えたSVG)
 const tabIcon = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 const TABS = [
-  ['home', tabIcon('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/>'), 'ホーム'],
-  ['schedule', tabIcon('<path d="M12 6.5C10.5 5 8 4.5 4 4.5v13c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-13c-4 0-6.5.5-8 2Z"/><path d="M12 6.5v13"/>'), 'しおり'],
+  ['schedule', tabIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), '予定'],
   ['places', tabIcon('<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20Z"/>'), '行きたい'],
   ['gear', tabIcon('<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.4l2.6 2.6 5-5.4"/>'), '準備'],
-  ['settings', tabIcon('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), '設定'],
+  ['tripsettings', tabIcon('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), '旅行設定'],
 ];
 
 // 下のタブ。画面を描き直しても残る要素(#navroot)に一度だけ入れ、選択の丸い「ガラス」を滑らせる
@@ -82,13 +77,11 @@ function tripHero(t) {
 }
 
 export function renderScreen(t) {
+  if (state.view === 'app') return renderAppPage();
+  if (state.view === 'list' || !t) return renderList();
   const tab = state.tab;
-  let body;
-  if (tab === 'home') body = renderHome();
-  else if (tab === 'settings') body = renderSettings(t);
-  else if (!t) body = renderNoTrip();
-  else body = tripHero(t) + { schedule: renderSchedule, places: renderPlaces, gear: renderGear }[tab](t);
-  return body;
+  if (tab === 'tripsettings') return renderTripSettings(t);
+  return tripHero(t) + { schedule: renderSchedule, places: renderPlaces, gear: renderGear }[tab](t);
 }
 
 function daytabs(t) {
@@ -202,13 +195,16 @@ function themeLabel(t) {
 }
 
 // 設定タブ = 「この旅行の設定」+「アプリ全体の設定」
-function renderSettings(t) {
-  return `<h2 class="title">設定</h2>${t ? tripSettings(t) : ''}${appSettings()}`;
+function renderTripSettings(t) {
+  return `<h2 class="title">旅行の設定</h2>${tripSettings(t)}`;
+}
+
+function renderAppPage() {
+  return `<h2 class="title">アプリの設定</h2>${appSettings()}`;
 }
 
 function tripSettings(t) {
-  return `<div class="group">この旅行「${esc(t.name)}」</div>
-  <div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
+  return `<div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
   <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < COUPLE ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
   ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div>${penBtn('edit-member', m.id, `${m.name}を編集`)}</div>`).join('')}
   <p class="small">誕生日はこの端末にだけ保存します。</p></div>
@@ -218,8 +214,7 @@ function tripSettings(t) {
 }
 
 function appSettings() {
-  return `<div class="group">アプリ</div>
-  <div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。</p>${swatches(state.settings.accent, 'app-color')}
+  return `<div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。</p>${swatches(state.settings.accent, 'app-color')}
     <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
   <div class="card"><h3>バックアップ</h3><p class="small">機種変更や故障に備えて、ときどき保存してね(誕生日・写真も含む自分用)。</p>
   <div class="place-actions"><button class="btn" data-action="export-all">${ICON.download} すべての旅行を保存</button>${state.currentId ? `<button class="btn" data-action="export-trip" data-id="${esc(state.currentId)}">${ICON.download} この旅行だけ保存</button>` : ''}<button class="btn" data-action="import">${ICON.upload} 読み込む</button></div></div>
