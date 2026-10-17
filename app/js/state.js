@@ -8,6 +8,7 @@ export const state = {
   currentId: null,
   tab: 'schedule',
   activeDay: 1,
+  gearTab: 'list',
   filter: 'すべて',
   search: '',
   persistent: true,

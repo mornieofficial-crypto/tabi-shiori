@@ -112,7 +112,7 @@ test('書き出し・読み込み: 共有用は誕生日を含まない / バッ
 test('読み込み: 不正・巨大なファイルは拒否', () => {
   assert.throws(() => parseImport('{broken'), ImportError);
   assert.throws(() => parseImport('{"hello":1}'), ImportError);
-  assert.throws(() => parseImport('x'.repeat(6 * 1024 * 1024)), ImportError);
+  assert.throws(() => parseImport('x'.repeat(31 * 1024 * 1024)), ImportError);
 });
 
 test('ナビURL: 座標あり→カーナビ、なし→検索のみ', () => {
@@ -167,4 +167,14 @@ test('背景の写真: 正しいJPEGだけ通り、共有用ファイルには�
   assert.equal(shared.backgroundPhoto, '');
   assert.equal(shared.background, 'plain');
   assert.equal(parseImport(serializeTrip(t))[0].backgroundPhoto, ok);
+});
+
+test('場所の写真: 正しい小さなJPEGだけ通り、共有用には入らない', () => {
+  const ok = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+  const t = normalizeTrip({ id: 'q', places: [{ id: 'a', name: 'x', photo: ok }, { id: 'b', name: 'y', photo: 'data:image/jpeg;base64,' + 'A'.repeat(250000) }, { id: 'c', name: 'z', photo: 'http://example.com/a.jpg' }] });
+  assert.equal(t.places[0].photo, ok);
+  assert.equal(t.places[1].photo, '');
+  assert.equal(t.places[2].photo, '');
+  assert.equal(parseImport(serializeTrip(t, { share: true }))[0].places[0].photo, '');
+  assert.equal(parseImport(serializeTrip(t))[0].places[0].photo, ok);
 });

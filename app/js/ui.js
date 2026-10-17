@@ -55,19 +55,26 @@ export function download(filename, text) {
 }
 
 // 写真を縮小してJPEGに作り直す。作り直すことで、撮影場所などのメタデータは取り除かれる。
-export async function resizeImage(file, maxSide = 1200) {
+export async function resizeImage(file, maxSide = 1200, maxLength = 600000) {
   if (!file || !String(file.type).startsWith('image/') || file.size > 25 * 1024 * 1024) throw new Error('bad image');
   const bmp = await createImageBitmap(file);
-  const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
   const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(bmp.width * scale));
-  canvas.height = Math.max(1, Math.round(bmp.height * scale));
-  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
-  bmp.close?.();
-  for (const q of [0.72, 0.6, 0.5, 0.4]) {
-    const url = canvas.toDataURL('image/jpeg', q);
-    if (url.length <= 600000) return url;
+  const ctx = canvas.getContext('2d');
+  // 大きすぎるときは、画質を下げ、それでもだめなら寸法も小さくして作り直す
+  for (const side of [maxSide, maxSide * 0.75, maxSide * 0.5]) {
+    const scale = Math.min(1, side / Math.max(bmp.width, bmp.height));
+    canvas.width = Math.max(1, Math.round(bmp.width * scale));
+    canvas.height = Math.max(1, Math.round(bmp.height * scale));
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    for (const q of [0.72, 0.6, 0.5, 0.4]) {
+      const url = canvas.toDataURL('image/jpeg', q);
+      if (url.length <= maxLength) {
+        bmp.close?.();
+        return url;
+      }
+    }
   }
+  bmp.close?.();
   throw new Error('too large');
 }
 

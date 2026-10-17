@@ -4,7 +4,7 @@
 import { uid } from './util.js';
 import { normalizeTrip, LIMITS } from './model.js';
 
-export const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+export const MAX_IMPORT_BYTES = 30 * 1024 * 1024; // 写真入りのバックアップを想定
 export const MAX_TRIPS_PER_FILE = 50;
 
 export class ImportError extends Error {}
@@ -15,6 +15,7 @@ function forShare(trip) {
     // 自分の写真は共有しない(中に写っている人や場所が分かるため)
     background: trip.background === 'photo' ? 'plain' : trip.background,
     backgroundPhoto: '',
+    places: trip.places.map((p) => ({ ...p, photo: '' })),
     members: trip.members.map((m) => ({ ...m, birthday: '', colorAuto: false })),
   };
 }

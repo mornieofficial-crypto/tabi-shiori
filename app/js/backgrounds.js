@@ -15,5 +15,6 @@ export const BACKGROUND_IDS = new Set([...BACKGROUNDS.map((b) => b.id), 'photo']
 
 // 写真は、端末で縮小してJPEGに作り直したものだけを受け付ける(約500KBまで)
 export const PHOTO_MAX_LENGTH = 700000;
-export const isPhoto = (s) => typeof s === 'string' && s.length <= PHOTO_MAX_LENGTH && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(s);
+export const PLACE_PHOTO_MAX_LENGTH = 200000;
+export const isPhoto = (s, max = PHOTO_MAX_LENGTH) => typeof s === 'string' && s.length <= max && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(s);
 export const backgroundLabel = (id) => (id === 'photo' ? '写真' : BACKGROUNDS.find((b) => b.id === id)?.label || 'シンプル');

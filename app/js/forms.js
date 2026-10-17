@@ -7,7 +7,7 @@ import { MODES } from './transit.js';
 import { navTargets } from './nav.js';
 import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
 import { avatar } from './views.js';
-import { BACKGROUNDS, BACKGROUND_IDS, isPhoto } from './backgrounds.js';
+import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 const err = (form, msg) => {
   const el = form.querySelector('.formerror');
@@ -109,10 +109,12 @@ export function memberForm(t, m, onDelete) {
 
 export function placeForm(t, p) {
   const editing = !!p;
+  let photo = p?.photo || '';
   openModal(
     `<form id="modalForm"><h2>${editing ? '候補を編集' : '行きたい場所を追加'}</h2><div class="formgrid">
     ${item('名前 *', `<input class="field" name="name" required maxlength="130" value="${esc(p?.name || '')}" placeholder="お店・観光スポット名">`)}
     ${item('ジャンル', `<select class="field" name="cat">${CATS.map((c) => `<option ${p?.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`)}
+    ${item('写真（任意）', `<div class="flex"><span class="thumb big" id="placePhotoTile"></span><label class="btn tiny">📷 写真を選ぶ<input type="file" id="placePhotoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="placePhotoRemove" hidden>外す</button></div><p class="small">この端末の中だけに保存します(撮影場所の情報は取り除き、小さくして保存)。共有用のファイルには入りません。</p>`)}
     ${item('マーク（なしならジャンルの絵文字）', emojiField('emoji', p?.emoji || '', { allowEmpty: true, label: 'マーク' }))}
     ${item('エリア', `<input class="field" name="region" maxlength="100" value="${esc(p?.region || '')}" placeholder="例：京都市・祇園">`)}
     ${item('住所・施設名（ナビの検索に使用）', `<input class="field" name="location" maxlength="200" value="${esc(p?.location || '')}">`)}
@@ -132,13 +134,39 @@ export function placeForm(t, p) {
         if (!latS || !lonS || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return err(form, '緯度・経度は両方、正しい数値で入れてください');
       }
       const cat = CATS.includes(formVal(f, 'cat')) ? formVal(f, 'cat') : 'その他';
-      const data = { name, cat, emoji: formVal(f, 'emoji'), region: formVal(f, 'region'), location: formVal(f, 'location'), memo: formVal(f, 'memo'), lat, lon };
+      const data = { name, cat, photo, emoji: formVal(f, 'emoji'), region: formVal(f, 'region'), location: formVal(f, 'location'), memo: formVal(f, 'memo'), lat, lon };
       if (editing) Object.assign(p, data);
       else t.places.push({ id: uid(), ...data, votes: {} });
       touch(t);
       hooks.render();
     },
   );
+  const form = document.getElementById('modalForm');
+  const tile = form.querySelector('#placePhotoTile');
+  const remove = form.querySelector('#placePhotoRemove');
+  const showPhoto = () => {
+    tile.style.backgroundImage = photo ? `url("${photo}")` : '';
+    tile.textContent = photo ? '' : '🍴';
+    remove.hidden = !photo;
+  };
+  showPhoto();
+  form.querySelector('#placePhotoFile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const url = await resizeImage(file, 640, PLACE_PHOTO_MAX_LENGTH);
+      if (!isPhoto(url, PLACE_PHOTO_MAX_LENGTH)) throw new Error('invalid');
+      photo = url;
+      showPhoto();
+    } catch {
+      err(form, 'この写真は読み込めませんでした。別の写真で試してね');
+    }
+  });
+  remove.addEventListener('click', () => {
+    photo = '';
+    showPhoto();
+  });
 }
 
 export function stopForm(t, s, presetPlaceId = '') {

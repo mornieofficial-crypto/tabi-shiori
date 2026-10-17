@@ -3,7 +3,7 @@
 import { uid, clamp, str, isDateStr, isTimeStr } from './util.js';
 import { isHex, parseBirthday, birthdayColor, PRESET_COLORS } from './color.js';
 import { MODES } from './transit.js';
-import { BACKGROUND_IDS, isPhoto } from './backgrounds.js';
+import { BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 export const SCHEMA = 2;
 // 夫婦2人で使う前提。2人を超える旅行データを読み込んだ場合は、削除できるようにだけしておく
@@ -70,6 +70,7 @@ function normalizePlace(raw, memberIds, used) {
     name: str(p.name, 130).trim() || '(名前なし)',
     cat: CATS.includes(p.cat) ? p.cat : 'その他',
     emoji: str(p.emoji, 8),
+    photo: isPhoto(p.photo, PLACE_PHOTO_MAX_LENGTH) ? p.photo : '',
     region: str(p.region, 100),
     location: str(p.location ?? p.address, 200),
     memo: str(p.memo ?? p.desc, 1000),
