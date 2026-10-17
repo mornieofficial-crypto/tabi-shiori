@@ -61,20 +61,52 @@ function fmtWait(ms) {
   return m >= 60 ? `${Math.floor(m / 60)}時間${m % 60 ? (m % 60) + '分' : ''}` : `${m}分`;
 }
 
+// 移動中は、出発の丸から次の予定の丸まで、時間軸(縦の線)の上を乗り物のマークが進む。
+// 15秒ごとに「15秒後の位置」へ向けて動かすので、なめらかに進み続けて見える。
+function placeRider(rider, stopEl, now, start, end, p) {
+  const next = stopEl.nextElementSibling?.classList.contains('stop') ? stopEl.nextElementSibling : null;
+  const y0 = stopEl.offsetTop + 27; // 丸(ドット)の中心の高さ
+  const y1 = next ? next.offsetTop + 27 : stopEl.offsetTop + stopEl.offsetHeight;
+  const yAt = (q) => y0 + (y1 - y0) * q;
+  const first = rider.hidden;
+  rider.textContent = stopEl.dataset.emoji;
+  rider.hidden = false;
+  const half = rider.offsetHeight / 2;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (first || reduce) {
+    rider.style.transition = 'none';
+    rider.style.top = yAt(p) - half + 'px';
+    void rider.offsetWidth;
+  }
+  if (!reduce) {
+    const ahead = Math.min(1, (now + 15000 - start) / (end - start));
+    rider.style.transition = 'top 15s linear';
+    rider.style.top = yAt(ahead) - half + 'px';
+  }
+}
+
 function updateTracks() {
   const now = Date.now();
-  document.querySelectorAll('.track[data-start]').forEach((el) => {
+  const rider = document.querySelector('.liverider');
+  let riding = false;
+  document.querySelectorAll('.stop.move[data-start]').forEach((el) => {
     const start = Number(el.dataset.start);
     const end = Number(el.dataset.end);
     const { state: st, p } = moveProgress(now, start, end);
-    el.style.setProperty('--p', p.toFixed(4));
     el.dataset.state = st;
     const label = document.querySelector(`[data-status="${CSS.escape(el.dataset.id)}"]`);
-    if (!label) return;
-    label.textContent =
-      st === 'before' ? `出発まであと${fmtWait(start - now)}` : st === 'moving' ? `移動中 ${Math.round(p * 100)}%(到着まであと${fmtWait(end - now)})` : st === 'arrived' ? '到着済み' : '';
+    if (label) {
+      label.textContent =
+        st === 'before' ? `出発まであと${fmtWait(start - now)}` : st === 'moving' ? `移動中 ${Math.round(p * 100)}%(到着まであと${fmtWait(end - now)})` : st === 'arrived' ? '到着済み' : '';
+    }
+    if (rider && st === 'moving' && !riding) {
+      riding = true;
+      placeRider(rider, el, now, start, end, p);
+    }
   });
+  if (rider && !riding) rider.hidden = true;
 }
+addEventListener('resize', updateTracks);
 setInterval(updateTracks, 15000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') updateTracks();

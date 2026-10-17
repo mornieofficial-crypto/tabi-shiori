@@ -98,18 +98,11 @@ textarea.field { min-height: 100px; resize: vertical; }
 .stop.done::before { background: #abb4aa; }
 .rowbtn { width: 100%; display: flex; align-items: center; justify-content: space-between; background: var(--tint); border: 0; border-radius: 10px; padding: 11px 10px; text-align: left; font-size: 12px; color: var(--accent-ink); margin-bottom: 4px; min-height: 44px; }
 
-/* 移動中のアイコン */
-.track { --p: 0; position: relative; height: 38px; margin: 10px 4px 2px; }
-.rail { position: absolute; left: 0; right: 0; top: 24px; height: 4px; border-radius: 4px; background: var(--tint-line); }
-.rail::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--p) * 100%); border-radius: 4px; background: var(--accent); }
-.rider { position: absolute; top: 0; left: calc(var(--p) * (100% - 28px)); font-size: 24px; line-height: 28px; width: 28px; text-align: center; transition: left 1.2s linear; }
-.rider.flip { transform: scaleX(-1); }
-.track[data-state="moving"] .rider { animation: bob .9s ease-in-out infinite; }
-.track[data-state="arrived"] .rail::after { background: var(--accent-ink); }
-@keyframes bob { 0%, 100% { margin-top: 0; } 50% { margin-top: -3px; } }
+/* 移動中の乗り物: 時間軸(縦の線)の上を動く */
+.timeline { position: relative; }
+.liverider { position: absolute; left: -1px; top: 0; width: 36px; height: 36px; margin-left: -18px; display: grid; place-items: center; font-size: 21px; line-height: 1; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(20, 40, 34, .25); z-index: 3; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
-  .rider, .btn, .nav button, .nav .icon { transition: none; }
-  .track[data-state="moving"] .rider { animation: none; }
+  .btn, .nav button, .nav .icon { transition: none; }
   html { scroll-behavior: auto; }
 }
 
@@ -327,3 +320,10 @@ body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-b
 /* アプリ名のヘッダーはホームだけ。他のタブではタブバーで戻れるので出さない */
 body:not([data-tab="home"]) .header { display: none; }
 body:not([data-tab="home"]) .wrap { padding-top: calc(10px + env(safe-area-inset-top)); }
+
+/* 候補の編集: 「写真を選ぶ」ボタンの文字を中央に(フォームのラベル用の指定が効いてずれていた) */
+.formitem label.btn { display: inline-flex; margin-bottom: 0; font-size: 12px; font-weight: 750; color: var(--accent-ink); }
+
+/* タブバーの文字: 小さく、控えめに(選択中だけ少し濃く) */
+.nav button { font-size: 9.5px; font-weight: 600; letter-spacing: .01em; color: color-mix(in srgb, var(--sub) 78%, white); }
+.nav button.active { font-weight: 700; color: var(--accent-ink); }

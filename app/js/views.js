@@ -120,7 +120,7 @@ function renderSchedule(t) {
   const isToday = todayDayNumber(t) === state.activeDay;
   const nowId = isToday ? currentStopId(stops) : '';
   return `<div class="sectionactions"><div><h2 class="title">${isToday ? '今日の予定' : '旅のしおり'}</h2>${isToday ? `<div class="small" style="margin-top:-8px">${esc(dateTitle(t, state.activeDay))}</div>` : ''}</div><button class="btn tiny primary" data-action="edit-stop" data-id="">＋ 予定を追加</button></div>${daytabs(t)}
-  ${stops.length ? `<div class="timeline">${stops.map((s) => renderStop(t, s, nowId)).join('')}</div>` : '<div class="empty"><strong>この日の予定はまだありません</strong>「予定を追加」から作るか、行きたい場所から予定に入れてね。</div>'}
+  ${stops.length ? `<div class="timeline">${stops.map((s) => renderStop(t, s, nowId)).join('')}<span class="liverider" hidden aria-hidden="true"></span></div>` : '<div class="empty"><strong>この日の予定はまだありません</strong>「予定を追加」から作るか、行きたい場所から予定に入れてね。</div>'}
   <button class="btn fill" data-action="edit-stop" data-id="">＋ ${state.activeDay}日目の予定を追加</button>`;
 }
 
@@ -133,10 +133,9 @@ function renderMove(t, s, nowId) {
   const times = s.endTime ? stopTimes(t.date, s.day, s.time, s.endTime) : null;
   const live = times ? `data-start="${times.start}" data-end="${times.end}"` : '';
   const hint = !s.endTime ? '到着時刻を入れると、時間に合わせて動きます' : !t.date ? '出発日を設定すると、当日に時間に合わせて動きます' : '';
-  return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card">
+  return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
     <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
     <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}</div>
-    <div class="track" ${live} data-id="${esc(s.id)}" aria-hidden="true"><div class="rail"></div><span class="rider ${mode.flip ? 'flip' : ''}">${esc(mode.emoji)}</span></div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
     ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
     <div class="place-actions">${checkBtn('visit', s.id, s.done, '済み')}</div></div></div>`;
