@@ -292,9 +292,9 @@ input[type="time"].field, input[type="date"].field { -webkit-appearance: none; a
   border: 1px solid rgba(255, 255, 255, .95);
   box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 1), inset 0 -7px 14px var(--tint-line), 0 6px 16px rgba(20, 40, 34, .2), 0 1px 3px rgba(20, 40, 34, .12);
   opacity: 0; }
-.nav.ready .navglass { opacity: 1; transition: transform .5s cubic-bezier(.3, 1.45, .55, 1), width .5s cubic-bezier(.3, 1.45, .55, 1), opacity .2s ease; }
-.navglass.flow { animation: liquid .5s ease; }
-@keyframes liquid { 0% { scale: 1 1; } 35% { scale: 1.22 .9; } 70% { scale: .98 1.04; } 100% { scale: 1 1; } }
+.nav.ready .navglass { opacity: 1; transition: transform var(--glass-dur, .42s) cubic-bezier(.32, .72, 0, 1), width var(--glass-dur, .42s) cubic-bezier(.32, .72, 0, 1), opacity .2s ease; }
+.navglass.flow { animation: liquid var(--glass-dur, .42s) ease-out; }
+@keyframes liquid { 0% { scale: 1 1; } 40% { scale: 1.08 .96; } 100% { scale: 1 1; } }
 @media (prefers-reduced-motion: reduce) {
   .nav.ready .navglass { transition: none; }
   .navglass.flow { animation: none; }

@@ -32,6 +32,10 @@ function updateNav() {
   }
   const x = active.offsetLeft;
   const moved = glass.dataset.x !== String(x);
+  // 動く時間は距離に合わせて少しだけ変える(行き過ぎる動きはなし。どのタブへも同じ質感で滑る)
+  const prev = Number(glass.dataset.x);
+  const steps = Number.isFinite(prev) ? Math.abs(x - prev) / active.offsetWidth : 1;
+  glass.style.setProperty('--glass-dur', (0.34 + 0.06 * Math.min(steps, 3)).toFixed(2) + 's');
   glass.style.width = active.offsetWidth + 'px';
   glass.style.transform = 'translateX(' + x + 'px)';
   glass.dataset.x = String(x);
