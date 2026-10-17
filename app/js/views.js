@@ -18,8 +18,8 @@ const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${ac
 const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
 const trashBtn = (action, id, label) => `<button class="iconbtn danger" data-action="${action}" data-id="${esc(id)}" aria-label="${esc(label)}">${TRASH}</button>`;
 // 「行った」「済み」のマークは足跡
-const visitBtn = (id, on, label) => `<button class="iconbtn check foot ${on ? 'on' : ''}" data-action="visit" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.foot}</button>`;
-const checkBtn = (action, id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.check}</button>`;
+const visitBtn = (id, on, label) => `<button class="iconbtn visit ${on ? 'on' : ''}" data-action="visit" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.foot}</button>`;
+const checkBtn = (action, id, on, label) => `<button class="iconbtn tick ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.check}</button>`;
 
 export { placeEmoji };
 
