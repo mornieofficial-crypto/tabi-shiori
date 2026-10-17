@@ -247,3 +247,9 @@ body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index:
 .hero p { color: var(--sub); margin-bottom: 10px; }
 .chip { border: 1px solid var(--tint-line); background: var(--tint); color: var(--accent-ink); font-weight: 700; }
 .heroavatars .avatar { border-color: var(--paper); }
+
+/* ---- 5タブ(ホーム/しおり/行きたい/準備/設定)と旅行名の切り替え ---- */
+.nav button { font-size: 10.5px; padding: 7px 0; }
+.tripswitch { max-width: 58vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 26px; }
+.group { margin-top: 22px; }
+.card.selected { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }

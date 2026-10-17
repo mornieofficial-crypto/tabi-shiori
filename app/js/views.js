@@ -25,24 +25,25 @@ export function dateTitle(t, day) {
 }
 
 export function renderHeadRight(trip) {
-  return trip ? '<button class="btn tiny" data-action="trips">← 旅行一覧</button>' : '';
+  // 旅行のタブにいるときだけ、いま開いている旅行名を出す(押すとホームで切り替え)
+  return trip && state.tab !== 'home' ? `<button class="btn tiny tripswitch" data-tab="home" aria-label="旅行を切り替える">${esc(trip.name)} ▾</button>` : '';
 }
 
-export function renderHome() {
+// ホーム = 旅行の一覧だけ。アプリ全体の設定は「設定」タブへ
+function renderHome() {
   const trips = state.trips;
-  return `<div class="hero"><div class="eyebrow">YOUR JOURNEY, YOUR CHOICE.</div><h1>行きたい場所から、<br>旅をつくろう。</h1><p>候補を集めて、みんなで選んで、決まったらしおりに。旅行当日の予定もここで。</p><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div>
-  <div class="sectionactions"><h2 class="title">あなたの旅行</h2><button class="btn tiny" data-action="import">↑ 読み込む</button></div>
-  ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。</div>'}
-  <div class="card"><h3>アプリの色</h3><p class="small">旅行ごとに別の色にもできます(旅行の設定から)。</p>${swatches(state.settings.accent, 'app-color')}
-    <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
-  ${trips.length ? '<div class="card"><h3>バックアップ</h3><p class="small">すべての旅行を1つのファイルに保存します(誕生日も含む自分用)。機種変更や故障に備えて、ときどき保存してね。</p><div class="place-actions"><button class="btn" data-action="export-all">↓ すべてバックアップ</button></div></div>' : ''}
-  ${storageNotice()}`;
+  return `<div class="sectionactions"><h2 class="title">あなたの旅行</h2><div class="flex"><button class="btn tiny" data-action="import">↑ 読み込む</button><button class="btn tiny primary" data-action="new-trip">＋ 新しい旅行</button></div></div>
+  ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。<div style="margin-top:14px"><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div></div>'}`;
+}
+
+function renderNoTrip() {
+  return `<div class="empty" style="margin-top:24px"><strong>旅行を選んでください</strong><button class="btn primary" data-tab="home">ホームで旅行を選ぶ</button></div>`;
 }
 
 function storageNotice() {
   return state.persistent
-    ? '<div class="notice">🔒 データはこの端末の中だけに保存します。他の人に見られることはありませんが、別のスマホとは自動同期しません。</div>'
-    : '<div class="notice warn">⚠️ この環境では端末への保存が使えません。このまま閉じるとデータが消えるので、こまめに「保存用データ」を書き出してください。</div>';
+    ? '<div class="notice">🔒 データはこの端末の中だけに保存します。別のスマホとは自動同期しません。</div>'
+    : '<div class="notice warn">⚠️ この環境では端末への保存が使えません。このまま閉じるとデータが消えるので、こまめにバックアップを書き出してください。</div>';
 }
 
 function swatches(selected, action) {
@@ -50,16 +51,30 @@ function swatches(selected, action) {
 }
 
 function renderTripCard(t) {
-  return `<div class="card"><div class="listrow"><span class="emoji">🗺️</span><div class="fillspace"><div class="tripname">${esc(t.name)}</div><div class="small">${esc(t.destination || '行き先未設定')} ・ ${t.days}日間 ・ 候補${t.places.length}件</div><div class="avatars">${t.members.map(avatar).join('')}</div></div></div>
-  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く ↗</button><button class="btn tiny danger" data-action="delete-trip" data-id="${esc(t.id)}">削除</button></div></div>`;
+  const open = t.id === state.currentId;
+  return `<div class="card ${open ? 'selected' : ''}"><div class="listrow"><span class="emoji">🗺️</span><div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')} ・ ${t.days}日間 ・ 候補${t.places.length}件</div><div class="avatars">${t.members.map(avatar).join('')}</div></div></div>
+  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く</button><button class="btn tiny danger" data-action="delete-trip" data-id="${esc(t.id)}">削除</button></div></div>`;
 }
 
-const TABS = [['schedule', '🗓', 'しおり'], ['places', '♡', '行きたい'], ['gear', '✓', '準備'], ['settings', '⚙️', '設定']];
+// 下のタブは、旅行を開いていなくても常に表示する(ホーム・しおり・行きたい・準備・設定)
+const TABS = [['home', '🏠', 'ホーム'], ['schedule', '🗓', 'しおり'], ['places', '♡', '行きたい'], ['gear', '✓', '準備'], ['settings', '⚙️', '設定']];
 
-export function renderTrip(t) {
-  const body = { schedule: renderSchedule, places: renderPlaces, gear: renderGear, settings: renderSettings }[state.tab](t);
-  return `<div class="hero"><div class="eyebrow">TRAVEL ITINERARY</div><h1>${esc(t.name)}</h1><p>${esc(t.destination || '行き先を決めよう')} ・ ${t.days}日間 ${t.date ? '・ ' + esc(t.date) + ' 出発' : ''}</p><div class="flex">${chip('行きたい候補 ' + t.places.length + '件')}${chip('予定 ' + t.schedule.length + '件')}<span class="avatars heroavatars">${t.members.map(avatar).join('')}</span></div></div>
-  <div class="nav" aria-label="旅行内メニュー">${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}</div>${body}`;
+function renderNav() {
+  return `<nav class="nav" aria-label="メインメニュー">${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}</nav>`;
+}
+
+function tripHero(t) {
+  return `<div class="hero"><div class="eyebrow">TRAVEL ITINERARY</div><h1>${esc(t.name)}</h1><p>${esc(t.destination || '行き先を決めよう')} ・ ${t.days}日間 ${t.date ? '・ ' + esc(t.date) + ' 出発' : ''}</p><div class="flex">${chip('行きたい候補 ' + t.places.length + '件')}${chip('予定 ' + t.schedule.length + '件')}<span class="avatars heroavatars">${t.members.map(avatar).join('')}</span></div></div>`;
+}
+
+export function renderScreen(t) {
+  const tab = state.tab;
+  let body;
+  if (tab === 'home') body = renderHome();
+  else if (tab === 'settings') body = renderSettings(t);
+  else if (!t) body = renderNoTrip();
+  else body = tripHero(t) + { schedule: renderSchedule, places: renderPlaces, gear: renderGear }[tab](t);
+  return body + renderNav();
 }
 
 function daytabs(t) {
@@ -164,15 +179,27 @@ function themeLabel(t) {
   return 'アプリ共通の色';
 }
 
+// 設定タブ = 「この旅行の設定」+「アプリ全体の設定」
 function renderSettings(t) {
-  return `<h2 class="title">旅行の設定</h2>
-  <div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>旅行名：<b>${esc(t.name)}</b></p><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
+  return `<h2 class="title">設定</h2>${t ? tripSettings(t) : ''}${appSettings()}`;
+}
+
+function tripSettings(t) {
+  return `<div class="group">この旅行「${esc(t.name)}」</div>
+  <div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
   <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < COUPLE ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
   ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div>${penBtn('edit-member', m.id, `${m.name}を編集`)}</div>`).join('')}
-  <p class="small">誕生日はこの端末にだけ保存します。同行者に渡すファイルには「色」だけが入ります。</p></div>
+  <p class="small">誕生日はこの端末にだけ保存します。</p></div>
   <div class="card"><div class="sectionactions"><h3>色と背景</h3>${penBtn('edit-theme', undefined, '色と背景を変える')}</div><p>色：${esc(themeLabel(t))}</p><p>背景：${esc(backgroundLabel(t.background))}</p></div>
-  <div class="card"><h3>共有とバックアップ</h3><p class="small">共有用のファイルには誕生日と写真が入りません。</p>
-  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">📲 AirDropなどで共有</button><button class="btn" data-action="export-trip" data-id="${esc(t.id)}">↓ バックアップ用で保存</button><button class="btn" data-action="import">↑ 読み込む</button><button class="btn" data-action="copy-schedule">📋 しおりをコピー</button></div>
-  <div class="notice warn">いまは端末内だけの保存です。リアルタイムの共同編集は今後追加予定で、そのときも内容は暗号化して送る設計です。</div></div>
+  <div class="card"><h3>共有</h3><p class="small">共有用のファイルには、誕生日と写真が入りません。</p>
+  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">📲 AirDropなどで共有</button><button class="btn" data-action="copy-schedule">📋 しおりをコピー</button></div></div>`;
+}
+
+function appSettings() {
+  return `<div class="group">アプリ</div>
+  <div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。</p>${swatches(state.settings.accent, 'app-color')}
+    <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
+  <div class="card"><h3>バックアップ</h3><p class="small">機種変更や故障に備えて、ときどき保存してね(誕生日・写真も含む自分用)。</p>
+  <div class="place-actions"><button class="btn" data-action="export-all">↓ すべての旅行を保存</button>${state.currentId ? `<button class="btn" data-action="export-trip" data-id="${esc(state.currentId)}">↓ この旅行だけ保存</button>` : ''}<button class="btn" data-action="import">↑ 読み込む</button></div></div>
   ${storageNotice()}`;
 }

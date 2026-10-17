@@ -1,5 +1,5 @@
-import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, saveSettings, applyTheme } from './state.js';
-import { renderHome, renderTrip, renderHeadRight } from './views.js';
+import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
+import { renderScreen, renderHeadRight } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, themeForm, navChooser } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, handleEmojiClick } from './ui.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
@@ -12,11 +12,11 @@ const $ = (id) => document.getElementById(id);
 function render() {
   const t = current();
   applyTheme(t);
-  document.body.classList.toggle('has-nav', !!t);
+  document.body.classList.add('has-nav');
   document.body.dataset.bg = t ? t.background : 'plain';
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
   $('headright').innerHTML = renderHeadRight(t);
-  $('view').innerHTML = t ? renderTrip(t) : renderHome();
+  $('view').innerHTML = renderScreen(t);
   updateTracks();
 }
 hooks.render = render;
@@ -90,7 +90,7 @@ async function importFile(file) {
   try {
     const trips = parseImport(await file.text());
     for (const t of trips) await addTrip(t, { select: trips.length === 1 });
-    state.tab = 'schedule';
+    state.tab = trips.length === 1 ? 'schedule' : 'home';
     state.activeDay = 1;
     render();
     toast(`${trips.length}件の旅行を読み込みました`);
@@ -147,9 +147,9 @@ document.addEventListener('click', (e) => {
   const t = current();
   switch (a) {
     case 'close': return closeModal();
-    case 'trips': state.currentId = null; return render();
+    case 'trips': state.tab = 'home'; return render();
     case 'new-trip': return tripForm();
-    case 'open-trip': state.currentId = id; state.activeDay = todayDayOrFirst(state.trips.find((x) => x.id === id)); state.tab = 'schedule'; render(); return scrollTo(0, 0);
+    case 'open-trip': selectTrip(id); state.activeDay = todayDayOrFirst(state.trips.find((x) => x.id === id)); state.tab = 'schedule'; render(); return scrollTo(0, 0);
     case 'import': return $('importFile').click();
     case 'export-all': download(`tabi-backup-${stamp()}.json`, serializeBackup(state.trips)); return toast('バックアップを保存したよ');
     case 'app-color': state.settings.accent = b.dataset.hex; saveSettings(); return render();
@@ -306,6 +306,7 @@ document.addEventListener('keydown', (e) => {
   } catch {
     state.persistent = false;
   }
+  state.activeDay = todayDayOrFirst(current());
   render();
   if (!state.persistent) toast('この環境では保存できません。書き出しを使ってね');
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js').catch(() => {});

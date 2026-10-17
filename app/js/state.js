@@ -45,16 +45,21 @@ export async function flush() {
   }
 }
 
+export async function selectTrip(id) {
+  state.currentId = id;
+  await db.setMeta('lastTrip', id).catch(hooks.onSaveError);
+}
+
 export async function addTrip(trip, { select = true } = {}) {
   state.trips.unshift(trip);
-  if (select) state.currentId = trip.id;
+  if (select) await selectTrip(trip.id);
   await db.saveTrip(trip).catch(hooks.onSaveError);
 }
 
 export async function removeTrip(id) {
   state.trips = state.trips.filter((t) => t.id !== id);
   dirty.delete(id);
-  if (state.currentId === id) state.currentId = null;
+  if (state.currentId === id) await selectTrip(null);
   await db.deleteTrip(id).catch(hooks.onSaveError);
 }
 
@@ -98,6 +103,10 @@ export async function load() {
   if (!trips.length) trips = await migrateLegacy();
   trips.sort((a, b) => String(b.created).localeCompare(String(a.created)));
   state.trips = trips;
+  // 前回開いていた旅行を、そのまま開く
+  const last = await db.getMeta('lastTrip');
+  state.currentId = trips.some((t) => t.id === last) ? last : null;
+  state.tab = state.currentId ? 'schedule' : 'home';
   const s = await db.getMeta('settings');
   if (s && isHex(s.accent)) state.settings.accent = s.accent.toLowerCase();
 }
