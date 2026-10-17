@@ -100,6 +100,7 @@ function normalizeStop(raw, days, placeIds, used) {
     optional: !!s.optional,
     done: !!s.done,
     mode: MODE_IDS.has(s.mode) ? s.mode : 'car',
+    emoji: str(s.emoji, 8),
   };
 }
 

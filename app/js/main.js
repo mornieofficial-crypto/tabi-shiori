@@ -1,5 +1,5 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
-import { renderScreen, renderHeadRight, renderNavInner } from './views.js';
+import { renderScreen, renderNavInner } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, handleEmojiClick } from './ui.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
@@ -48,7 +48,6 @@ function render() {
   document.body.dataset.tab = state.tab;
   document.body.dataset.bg = t ? t.background : 'plain';
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
-  $('headright').innerHTML = renderHeadRight(t);
   $('view').innerHTML = renderScreen(t);
   updateNav();
   updateTracks();

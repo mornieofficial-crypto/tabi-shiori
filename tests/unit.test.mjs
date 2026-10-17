@@ -190,3 +190,10 @@ test('予約: 正規化(日にち0=未定、範囲外や不正な時刻は落と
   assert.equal(normalizeTrip({}).bookings.length, 0);
   assert.equal(parseImport(serializeTrip(t))[0].bookings.length, 3);
 });
+
+test('予定のマーク(emoji): 保存され、長すぎる値は切り詰める', () => {
+  const t = normalizeTrip({ schedule: [{ id: 's', title: 'a', emoji: '🍣' }, { id: 't', title: 'b', emoji: 'x'.repeat(40) }, { id: 'u', title: 'c' }] });
+  assert.equal(t.schedule[0].emoji, '🍣');
+  assert.equal(Array.from(t.schedule[1].emoji).length, 8);
+  assert.equal(t.schedule[2].emoji, '');
+});

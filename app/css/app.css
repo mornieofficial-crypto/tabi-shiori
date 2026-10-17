@@ -317,3 +317,13 @@ body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-b
 .iconbtn:disabled { opacity: .35; }
 .check.reorder { padding: 8px 0; }
 .thumb .ico, #photoTile .ico, #placePhotoTile .ico { width: 26px; height: 26px; color: var(--accent-ink); }
+
+/* ---- ずれの修正と、ヘッダーの整理 ---- */
+/* 疑似要素は * のbox-sizingを受けないので、時間軸の丸を線の中心にそろえるため指定する */
+.stop::before { box-sizing: border-box; }
+/* チェックボタンのアイコンを丸の中心に置く */
+.iconbtn.check .ico { width: 20px; height: 20px; vertical-align: middle; }
+.place-actions { align-items: center; }
+/* アプリ名のヘッダーはホームだけ。他のタブではタブバーで戻れるので出さない */
+body:not([data-tab="home"]) .header { display: none; }
+body:not([data-tab="home"]) .wrap { padding-top: calc(10px + env(safe-area-inset-top)); }

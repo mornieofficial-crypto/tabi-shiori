@@ -13,7 +13,7 @@ const PEN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" 
 const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${action}" ${id === undefined ? '' : `data-id="${esc(id)}" `}aria-label="${esc(label)}">${PEN}</button>`;
 const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
 const trashBtn = (action, id, label) => `<button class="iconbtn danger" data-action="${action}" data-id="${esc(id)}" aria-label="${esc(label)}">${TRASH}</button>`;
-const checkBtn = (action, id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">✓</button>`;
+const checkBtn = (action, id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.check}</button>`;
 
 export function avatar(m) {
   const c = badgeColors(m.color);
@@ -32,11 +32,6 @@ export function dateTitle(t, day) {
   const [y, m, d] = t.date.split('-').map(Number);
   const dt = new Date(y, m - 1, d + day - 1);
   return `${dt.getMonth() + 1}/${dt.getDate()}（${'日月火水木金土'[dt.getDay()]}）`;
-}
-
-export function renderHeadRight(trip) {
-  // 旅行のタブにいるときだけ、いま開いている旅行名を出す(押すとホームで切り替え)
-  return trip && state.tab !== 'home' ? `<button class="btn tiny tripswitch" data-tab="home" aria-label="旅行を切り替える">${esc(trip.name)} ▾</button>` : '';
 }
 
 // ホーム = 旅行の一覧だけ。アプリ全体の設定は「設定」タブへ
@@ -71,7 +66,7 @@ function renderTripCard(t) {
 const tabIcon = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 const TABS = [
   ['home', tabIcon('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/>'), 'ホーム'],
-  ['schedule', tabIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), 'しおり'],
+  ['schedule', tabIcon('<path d="M12 6.5C10.5 5 8 4.5 4 4.5v13c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-13c-4 0-6.5.5-8 2Z"/><path d="M12 6.5v13"/>'), 'しおり'],
   ['places', tabIcon('<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20Z"/>'), '行きたい'],
   ['gear', tabIcon('<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.4l2.6 2.6 5-5.4"/>'), '準備'],
   ['settings', tabIcon('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), '設定'],
@@ -151,7 +146,7 @@ function renderPlaceStop(t, s, nowId) {
   const p = getPlace(t, s.placeId);
   const opts = s.options.map((id) => getPlace(t, id)).filter(Boolean);
   return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
-  ${p ? `<div class="listrow stopplace">${thumb(p)}<div class="fillspace"><div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div></div></div>` : '<div class="small" style="margin-top:8px">候補から選択してください</div>'}
+  <div class="listrow stopplace">${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? thumb(p) : '<span class="emoji">📍</span>'}<div class="fillspace">${p ? `<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div>` : `<div class="tripname muted">場所は未定</div><div class="small">編集から候補を選べます</div>`}</div></div>
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
   ${opts.length > 1 ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<button class="rowbtn" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}"><span>${s.placeId === o.id ? '✓ ' : ''}${esc(o.name)}</span><span>${s.placeId === o.id ? '決定中' : '選ぶ →'}</span></button>`).join('')}` : ''}
   <div class="place-actions">${checkBtn('visit', s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;

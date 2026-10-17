@@ -185,6 +185,7 @@ export function stopForm(t, s, presetPlaceId = '') {
     ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : '立ち寄り'))}">`)}
     <div class="formitem" data-for="move"><label>移動手段</label><div class="modes">${MODES.map((m) => `<label class="modepill"><input type="radio" name="mode" value="${m.id}" ${(s?.mode || 'car') === m.id ? 'checked' : ''}><span>${esc(m.emoji)} ${esc(m.label)}</span></label>`).join('')}</div></div>
     <div class="formitem" data-for="stop"><label for="placeSel">選んだ場所（決まっていなければ空欄）</label><select id="placeSel" class="field" name="placeId"><option value="">未決定</option>${placeOpts}</select></div>
+    <div class="formitem" data-for="stop"><label>マーク（なしなら場所のマークを使います）</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
     ${item('補足メモ', `<textarea class="field" name="note" maxlength="500">${esc(s?.note || '')}</textarea>`)}
     <label class="check inline"><input type="checkbox" name="optional" ${s?.optional ? 'checked' : ''}><span>時間があれば行く</span></label>
     </div>${actions('閉じる', '保存', editing ? `<button type="button" class="btn danger" data-action="remove-stop" data-id="${esc(s.id)}">削除</button>` : '')}</form>`,
@@ -197,7 +198,7 @@ export function stopForm(t, s, presetPlaceId = '') {
       if (!isTimeStr(time)) return err(form, '時間を入れてください');
       if (endTime && (!isTimeStr(endTime) || endTime <= time)) return err(form, '到着は出発より後の時刻にしてください(日をまたぐ移動は2つに分けてね)');
       const pid = k === 'stop' && getPlace(t, formVal(f, 'placeId')) ? formVal(f, 'placeId') : '';
-      const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid };
+      const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k === 'stop' ? formVal(f, 'emoji') : '' };
       if (editing) {
         Object.assign(s, obj);
         s.options = k === 'stop' ? s.options.filter((id) => getPlace(t, id)) : [];

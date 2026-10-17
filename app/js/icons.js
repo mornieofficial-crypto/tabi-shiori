@@ -11,6 +11,7 @@ export const ICON = {
   camera: svg('<path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H8l1.2-2h5.6L16 6h1.5A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5Z"/><circle cx="12" cy="12.5" r="3.5"/>'),
   pin: svg('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>'),
   map: svg('<path d="M9 5 3.5 7v12L9 17l6 2 5.5-2V5L15 7Z"/><path d="M9 5v12M15 7v12"/>'),
+  check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>').replace('stroke-width="2"', 'stroke-width="2.8"'),
   up: svg('<path d="M6 14l6-6 6 6"/>'),
   down: svg('<path d="M6 10l6 6 6-6"/>'),
 };
