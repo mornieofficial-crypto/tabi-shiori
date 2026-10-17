@@ -171,3 +171,23 @@ textarea.field { min-height: 100px; resize: vertical; }
   .modal { border-radius: 20px; margin-bottom: 8vh; }
   .modalback { place-items: center; }
 }
+
+/* 旅行ごとの背景(画像は使わず、CSSだけで描く。テーマ色に合わせて変わるものもある) */
+body { background-color: var(--base); }
+[data-bg="tint"] { background-image: linear-gradient(180deg, var(--tint), var(--base) 60%); }
+[data-bg="dots"] { background-image: radial-gradient(var(--tint-line) 1.4px, transparent 1.6px); background-size: 18px 18px; }
+[data-bg="grid"] { background-image: linear-gradient(var(--tint) 1px, transparent 1px), linear-gradient(90deg, var(--tint) 1px, transparent 1px); background-size: 22px 22px; }
+[data-bg="stripes"] { background-image: repeating-linear-gradient(135deg, var(--tint) 0 10px, transparent 10px 20px); }
+[data-bg="waves"] { background-image: repeating-radial-gradient(circle at 50% 100%, transparent 0 14px, var(--tint-line) 14px 15.5px); background-size: 56px 28px; }
+[data-bg="sky"] { background-image: linear-gradient(180deg, #dcecf8, #f2f7fb 45%, var(--base)); }
+[data-bg="sunset"] { background-image: linear-gradient(180deg, #fbdcc9, #fdeee3 45%, var(--base)); }
+body[data-bg="dots"], body[data-bg="grid"], body[data-bg="stripes"], body[data-bg="waves"] { background-attachment: scroll; }
+
+.bgpicker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bgopt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bgopt input { position: absolute; opacity: 0; pointer-events: none; }
+.bgtile { width: 100%; aspect-ratio: 1; border-radius: 16px; border: 1px solid var(--line); background-color: var(--base); box-shadow: 0 4px 10px rgba(20, 40, 34, .08); }
+.bglabel { font-size: 11px; font-weight: 700; color: var(--sub); }
+.bgopt:has(input:checked) .bgtile { box-shadow: 0 0 0 3px var(--accent-ink), 0 4px 10px rgba(20, 40, 34, .12); }
+.bgopt:has(input:checked) .bglabel { color: var(--accent-ink); }
+.bgopt:has(input:focus-visible) .bgtile { outline: 3px solid var(--accent); outline-offset: 2px; }

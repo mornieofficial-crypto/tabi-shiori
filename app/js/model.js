@@ -3,6 +3,7 @@
 import { uid, clamp, str, isDateStr, isTimeStr } from './util.js';
 import { isHex, parseBirthday, birthdayColor, PRESET_COLORS } from './color.js';
 import { MODES } from './transit.js';
+import { BACKGROUND_IDS } from './backgrounds.js';
 
 export const SCHEMA = 2;
 // 夫婦2人で使う前提。2人を超える旅行データを読み込んだ場合は、削除できるようにだけしておく
@@ -146,6 +147,7 @@ export function normalizeTrip(raw) {
     days,
     members,
     theme: normalizeTheme(t.theme, members),
+    background: BACKGROUND_IDS.has(t.background) ? t.background : 'plain',
     places,
     schedule,
     checklist,

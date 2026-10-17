@@ -145,3 +145,9 @@ test('私的データ(あれば)が読み込める', { skip: !existsSync(join(ro
   assert.ok(t.places.length >= 60);
   assert.ok(t.schedule.length >= 15);
 });
+
+test('背景: 許可された値だけ通り、不正な値・旧データは plain になる', () => {
+  assert.equal(normalizeTrip({ background: 'waves' }).background, 'waves');
+  assert.equal(normalizeTrip({ background: 'url(http://x)' }).background, 'plain');
+  assert.equal(normalizeTrip({}).background, 'plain');
+});

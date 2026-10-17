@@ -13,6 +13,7 @@ function render() {
   const t = current();
   applyTheme(t);
   document.body.classList.toggle('has-nav', !!t);
+  document.body.dataset.bg = t ? t.background : 'plain';
   $('headright').innerHTML = renderHeadRight(t);
   $('view').innerHTML = t ? renderTrip(t) : renderHome();
   updateTracks();

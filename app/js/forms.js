@@ -7,6 +7,7 @@ import { MODES } from './transit.js';
 import { navTargets } from './nav.js';
 import { openModal, closeModal, toast, emojiField, formVal, formInt } from './ui.js';
 import { avatar } from './views.js';
+import { BACKGROUNDS, BACKGROUND_IDS } from './backgrounds.js';
 
 const err = (form, msg) => {
   const el = form.querySelector('.formerror');
@@ -226,13 +227,18 @@ export function themeForm(t) {
   const th = t.theme;
   const opt = (value, label, checked, extra = '') => `<label class="themeopt"><input type="radio" name="mode" value="${esc(value)}" ${checked ? 'checked' : ''}><span>${label}</span>${extra}</label>`;
   openModal(
-    `<form id="modalForm"><h2>この旅行の色</h2><div class="formgrid">
+    `<form id="modalForm"><h2>この旅行の色と背景</h2><div class="formgrid">
+    <div class="group" style="margin:0">色</div>
     ${opt('inherit', 'アプリ共通の色', th.mode === 'inherit')}
     ${t.members.map((m) => opt('m:' + m.id, `${avatar(m)} ${esc(m.name)}の色`, th.mode === 'member' && th.memberId === m.id, `<span class="dot big" style="background:${esc(m.color)}"></span>`)).join('')}
     ${t.members.length >= 2 ? opt('duo', `${esc(t.members[0].name)}と${esc(t.members[1].name)}の色(2色)`, th.mode === 'duo', `<span class="dot big" style="background:linear-gradient(90deg,${esc(t.members[0].color)} 50%,${esc(t.members[1].color)} 50%)"></span>`) : ''}
     ${opt('custom', '好きな色', th.mode === 'custom', `<input type="color" class="colorinput" name="hex" value="${esc(th.hex || '#3b6ea5')}" aria-label="好きな色">`)}
+    <div class="group" style="margin:8px 0 0">背景</div>
+    <div class="bgpicker" role="radiogroup" aria-label="背景">${BACKGROUNDS.map((b) => `<label class="bgopt"><input type="radio" name="background" value="${b.id}" ${t.background === b.id ? 'checked' : ''}><span class="bgtile" data-bg="${b.id}"></span><span class="bglabel">${esc(b.label)}</span></label>`).join('')}</div>
     </div>${actions('キャンセル', '決定')}</form>`,
     (f) => {
+      const bg = formVal(f, 'background');
+      t.background = BACKGROUND_IDS.has(bg) ? bg : 'plain';
       const v = formVal(f, 'mode');
       if (v === 'duo') t.theme = { mode: 'duo' };
       else if (v === 'custom' && isHex(formVal(f, 'hex'))) t.theme = { mode: 'custom', hex: formVal(f, 'hex').toLowerCase() };
