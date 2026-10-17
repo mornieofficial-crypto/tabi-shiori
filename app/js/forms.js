@@ -10,10 +10,12 @@ import { avatar } from './views.js';
 import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 const err = (form, msg) => {
-  const el = form.querySelector('.formerror');
+  // エラー欄は、保存ボタンの近く(モーダルの上部)に移してあるので、モーダル全体から探す
+  const el = (form.closest('.modal') || form).querySelector('.formerror');
   if (el) {
     el.textContent = msg;
     el.hidden = !msg;
+    if (msg) el.scrollIntoView({ block: 'nearest' });
   }
   return false;
 };

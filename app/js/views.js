@@ -61,8 +61,8 @@ function swatches(selected, action) {
 
 function renderTripCard(t) {
   const open = t.id === state.currentId;
-  return `<div class="card ${open ? 'selected' : ''}"><div class="listrow">${t.backgroundPhoto ? `<span class="thumb" style="background-image:url('${t.backgroundPhoto}')" role="img" aria-label="旅行の写真"></span>` : '<span class="emoji">🗺️</span>'}<div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')}</div><div class="small">${esc(rangeText(t))}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div></div>
-  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く</button>${trashBtn('delete-trip', t.id, '旅行を削除')}</div></div>`;
+  // カード全体をタップすると開く(ゴミ箱だけは別の操作)
+  return `<div class="card tripcard ${open ? 'selected' : ''}" role="button" tabindex="0" data-action="open-trip" data-id="${esc(t.id)}" aria-label="${esc(t.name)}を開く"><div class="listrow">${t.backgroundPhoto ? `<span class="thumb" style="background-image:url('${t.backgroundPhoto}')" role="img" aria-label="旅行の写真"></span>` : '<span class="emoji">🗺️</span>'}<div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')}</div><div class="small">${esc(rangeText(t))}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div>${trashBtn('delete-trip', t.id, '旅行を削除')}</div></div>`;
 }
 
 // 下のタブは、旅行を開いていなくても常に表示する(ホーム・しおり・行きたい・準備・設定)

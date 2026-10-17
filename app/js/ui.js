@@ -11,6 +11,7 @@ export function openModal(html, onSubmit) {
   lastFocus = document.activeElement;
   $('modalroot').innerHTML = `<div class="modalback" id="back"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
   submitHandler = onSubmit || null;
+  restructureModal();
   const form = $('modalForm');
   if (form && onSubmit) {
     form.addEventListener('submit', (e) => {
@@ -19,6 +20,34 @@ export function openModal(html, onSubmit) {
     });
   }
   $('modalroot').querySelector('input:not([type=hidden]),select,textarea,button')?.focus({ preventScroll: true });
+}
+
+// 閉じる(左上)と保存(右上)を、アイコンで画面の上に固定する。削除などの追加ボタンは下に残す。
+const X_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+function restructureModal() {
+  const modal = $('modalroot').querySelector('.modal');
+  const h2 = modal?.querySelector('h2');
+  if (!h2) return;
+  const form = modal.querySelector('#modalForm');
+  const actions = modal.querySelector('.modalactions');
+  const submit = actions?.querySelector('button[type="submit"]');
+  const head = document.createElement('div');
+  head.className = 'modalhead';
+  head.innerHTML = `<button type="button" class="iconbtn" data-action="close" aria-label="閉じる">${X_ICON}</button>`;
+  head.append(h2);
+  if (form && submit) {
+    head.insertAdjacentHTML('beforeend', `<button type="submit" form="modalForm" class="iconbtn primary" aria-label="${esc(submit.textContent.trim() || '保存')}">${CHECK_ICON}</button>`);
+  } else {
+    head.insertAdjacentHTML('beforeend', '<span class="iconbtn ghost" aria-hidden="true"></span>');
+  }
+  actions?.querySelectorAll('button[data-action="close"], button[type="submit"]').forEach((b) => b.remove());
+  if (actions && !actions.children.length) actions.remove();
+  modal.prepend(head);
+  // エラー表示は、保存ボタンの近く(上)に出す
+  const error = modal.querySelector('.formerror');
+  if (error) head.after(error);
 }
 
 export function closeModal() {

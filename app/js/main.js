@@ -311,6 +311,11 @@ $('modalroot').addEventListener('click', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && modalOpen()) closeModal();
+  // カード(role=button)はキーボードでも開ける
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.tripcard') && e.target === document.activeElement) {
+    e.preventDefault();
+    e.target.click();
+  }
 });
 
 // ---- 起動 ----
