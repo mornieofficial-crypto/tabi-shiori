@@ -124,8 +124,8 @@ function renderSchedule(t) {
   const isToday = todayDayNumber(t) === state.activeDay;
   const nowId = isToday ? currentStopId(stops) : '';
   return `<div class="sectionactions"><div><h2 class="title">${isToday ? '今日の予定' : '旅のしおり'}</h2>${isToday ? `<div class="small" style="margin-top:-8px">${esc(dateTitle(t, state.activeDay))}</div>` : ''}</div><button class="btn tiny primary" data-action="edit-stop" data-id="">＋ 予定を追加</button></div>${daytabs(t)}
-  ${stops.length ? `<div class="timeline">${stops.map((s) => renderStop(t, s, nowId)).join('')}<span class="liverider" hidden aria-hidden="true"></span></div>` : '<div class="empty"><strong>この日の予定はまだありません</strong>「予定を追加」から作るか、行きたい場所から予定に入れてね。</div>'}
-  <button class="btn fill" data-action="edit-stop" data-id="">＋ ${state.activeDay}日目の予定を追加</button>`;
+  <div class="daypanel">${stops.length ? `<div class="timeline">${stops.map((s) => renderStop(t, s, nowId)).join('')}<span class="liverider" hidden aria-hidden="true"></span></div>` : '<div class="empty"><strong>この日の予定はまだありません</strong>「予定を追加」から作るか、行きたい場所から予定に入れてね。</div>'}
+  <button class="btn fill" data-action="edit-stop" data-id="">＋ ${state.activeDay}日目の予定を追加</button></div>`;
 }
 
 function renderStop(t, s, nowId) {
