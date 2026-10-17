@@ -17,6 +17,8 @@ const PEN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" 
 const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${action}" ${id === undefined ? '' : `data-id="${esc(id)}" `}aria-label="${esc(label)}">${PEN}</button>`;
 const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
 const trashBtn = (action, id, label) => `<button class="iconbtn danger" data-action="${action}" data-id="${esc(id)}" aria-label="${esc(label)}">${TRASH}</button>`;
+// 「行った」「済み」のマークは足跡
+const visitBtn = (id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="visit" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.foot}</button>`;
 const checkBtn = (action, id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.check}</button>`;
 
 export { placeEmoji };
@@ -137,7 +139,7 @@ function renderMove(t, s, nowId) {
     <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}</div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
     ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-    <div class="place-actions">${checkBtn('visit', s.id, s.done, '済み')}</div></div></div>`;
+    <div class="place-actions">${visitBtn(s.id, s.done, '済み')}</div></div></div>`;
 }
 
 function renderPlaceStop(t, s, nowId) {
@@ -146,8 +148,8 @@ function renderPlaceStop(t, s, nowId) {
   return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
   <div class="listrow stopplace" ${p ? `role="button" tabindex="0" data-action="place-detail" data-id="${esc(p.id)}" aria-label="${esc(p.name)}の詳細を見る"` : ''}>${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? thumb(p) : '<span class="emoji">📍</span>'}<div class="fillspace">${p ? `<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div>` : `<div class="tripname muted">場所は未定</div><div class="small">${opts.length ? '下の候補から選べます' : '編集から候補を選べます'}</div>`}</div></div>
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}${s.placeId ? '<p class="small">決定中の候補をもう一度押すと、決定を解除できます。名前をタップすると詳細が見られます。</p>' : '<p class="small">名前をタップすると、詳細が見られます。</p>'}` : ''}
-  <div class="place-actions">${checkBtn('visit', s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
+  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}` : ''}
+  <div class="place-actions">${visitBtn(s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
 }
 
 function renderPlaces(t) {
