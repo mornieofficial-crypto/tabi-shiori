@@ -1,0 +1,15 @@
+name = "tabi-shiori-relay"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# アプリを配信しているオリジンだけに限定する(公開サイトのURLに合わせる)
+ALLOWED_ORIGIN = "https://mornieofficial-crypto.github.io"
+
+[[durable_objects.bindings]]
+name = "ROOM"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]

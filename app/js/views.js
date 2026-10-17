@@ -1,13 +1,17 @@
 // 画面のHTMLを組み立てる(状態は変更しない)。ユーザー入力は必ず esc を通す。
 import { esc } from './util.js';
 import { CATS, CAT_EMOJI, COUPLE } from './model.js';
-import { state, getPlace, getMember } from './state.js';
+import { state, current, getPlace, getMember } from './state.js';
 import { badgeColors, PRESET_COLORS } from './color.js';
 import { modeOf, stopTimes, dayStart } from './transit.js';
 import { backgroundLabel } from './backgrounds.js';
 import { ICON } from './icons.js';
+import { links } from './sync.js';
 
-const placeEmoji = (p) => p.emoji || CAT_EMOJI[p.cat] || '📍';
+// ジャンルの絵文字(初期のジャンル → この旅行で追加したジャンル → 📍)
+const catEmoji = (cat) => CAT_EMOJI[cat] || current()?.genres?.find((g) => g.name === cat)?.emoji || '📍';
+const placeEmoji = (p) => p.emoji || catEmoji(p.cat);
+const allCats = (t) => [...CATS, ...t.genres.map((g) => g.name)];
 // 編集はペンのアイコンだけにして、文字を減らす
 const PEN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${action}" ${id === undefined ? '' : `data-id="${esc(id)}" `}aria-label="${esc(label)}">${PEN}</button>`;
@@ -105,7 +109,7 @@ function currentStopId(stops) {
   return id;
 }
 
-const catChip = (label, cat) => `<span class="cat" data-cat="${esc(cat || '')}">${esc(label)}</span>`;
+const catChip = (label, cat, emoji = '') => `<span class="cat" data-cat="${esc(cat || '')}">${emoji ? esc(emoji) + ' ' : ''}${esc(label)}</span>`;
 const thumb = (p) => (p.photo ? `<span class="thumb" style="background-image:url('${p.photo}')" role="img" aria-label="${esc(p.name)}の写真"></span>` : `<span class="emoji">${esc(placeEmoji(p))}</span>`);
 
 function renderSchedule(t) {
@@ -153,13 +157,13 @@ function renderPlaces(t) {
   });
   return `<div class="sectionactions"><h2 class="title">行きたい場所</h2><button class="btn tiny primary" data-action="edit-place">＋ 候補を追加</button></div>
   <input id="placeSearch" class="search" placeholder="店名・エリア・メモで検索" value="${esc(state.search)}" aria-label="候補を検索">
-  <div class="filters">${['すべて', ...CATS, ALL].map((c) => `<button class="${state.filter === c ? 'active' : ''}" data-filter="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+  <div class="filters">${['すべて', ...allCats(t), ALL].map((c) => `<button class="${state.filter === c ? 'active' : ''}" data-filter="${esc(c)}">${esc(c)}</button>`).join('')}</div>
   <div class="small">${list.length}件の候補</div>
   ${list.length ? list.slice(0, 200).map((p) => renderPlace(t, p)).join('') : '<div class="empty"><strong>条件に合う候補はありません</strong>検索条件を変更するか、候補を追加してね。</div>'}`;
 }
 
 function renderPlace(t, p) {
-  return `<div class="card placecard"><div class="listrow">${thumb(p)}<div class="fillspace">${catChip(p.cat, p.cat)}<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || 'エリア未設定')}</div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
+  return `<div class="card placecard"><div class="listrow">${p.photo ? thumb(p) : ''}<div class="fillspace">${catChip(p.cat, p.cat, placeEmoji(p))}<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || 'エリア未設定')}</div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
   ${p.memo ? `<p class="memo">${esc(p.memo)}</p>` : ''}
   <div class="vote">${t.members.map((m) => { const on = !!p.votes[m.id]; const c = badgeColors(m.color); return `<button class="${on ? 'active' : ''}" style="${on ? `background:${c.bg};border-color:${c.border};color:${c.ink}` : ''}" data-action="vote" data-id="${esc(p.id)}" data-member="${esc(m.id)}" aria-pressed="${on}">${on ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</button>`; }).join('')}</div>
   <div class="place-actions"><button class="btn primary addbtn" data-action="add-place-to-day" data-id="${esc(p.id)}">＋ 予定に追加</button><button class="btn" data-action="nav" data-id="${esc(p.id)}" aria-label="ナビ">${ICON.navigate}</button></div></div>`;
@@ -208,9 +212,29 @@ function tripSettings(t) {
   <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < COUPLE ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
   ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div>${penBtn('edit-member', m.id, `${m.name}を編集`)}</div>`).join('')}
   <p class="small">誕生日はこの端末にだけ保存します。</p></div>
+  <div class="card"><div class="sectionactions"><h3>ジャンル</h3><button class="btn tiny" data-action="add-genre">＋ 追加</button></div>
+  <p class="small">行きたい場所の分け方です。初期のジャンルに足して、この旅行だけのジャンルを作れます。</p>
+  <div class="genrelist">${CATS.map((c) => `<span class="cat" data-cat="${esc(c)}">${esc(CAT_EMOJI[c])} ${esc(c)}</span>`).join('')}${t.genres.map((g) => `<span class="cat custom" data-cat="">${esc(g.emoji)} ${esc(g.name)}<button type="button" class="chipx" data-action="delete-genre" data-id="${esc(g.id)}" aria-label="「${esc(g.name)}」を削除">×</button></span>`).join('')}</div></div>
   <div class="card"><div class="sectionactions"><h3>色と背景</h3>${penBtn('edit-theme', undefined, '色と背景を変える')}</div><p>色：${esc(themeLabel(t))}</p><p>背景：${esc(backgroundLabel(t.background))}</p></div>
   <div class="card"><h3>共有</h3><p class="small">共有用のファイルには、誕生日と写真が入りません。</p>
-  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">${ICON.share} AirDropなどで共有</button><button class="btn" data-action="copy-schedule">${ICON.copy} しおりをコピー</button></div></div>`;
+  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">${ICON.share} AirDropなどで共有</button><button class="btn" data-action="copy-schedule">${ICON.copy} しおりをコピー</button></div></div>
+  ${syncCard(t)}`;
+}
+
+// 2人で同期(旅行の設定の中)
+function syncCard(t) {
+  const l = links.get(t.id);
+  if (l) {
+    const time = l.last ? new Date(l.last).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '';
+    const status = l.status === 'syncing' ? '同期しています…' : l.status === 'error' ? `うまくいきませんでした:${l.error}` : time ? `最後に同期:${time}` : '準備ができました';
+    return `<div class="card"><div class="spread"><h3>2人で同期</h3><span class="cat">同期中</span></div><p class="small">${esc(status)}</p>
+    <div class="place-actions"><button class="btn primary" data-action="sync-share">${ICON.share} リンクを送る</button><button class="btn" data-action="sync-now">今すぐ同期</button><button class="btn danger" data-action="sync-stop">やめる</button></div>
+    <p class="small">内容は暗号化して送ります。リンクを知っている人は、この旅行を読み書きできるので、相手以外には渡さないでね。</p></div>`;
+  }
+  if (!state.settings.relay) {
+    return `<div class="card"><h3>2人で同期</h3><p class="small">2台のスマホで、同じ旅行を同じ内容にそろえます。使うには、先に「アプリの設定」で同期サーバーを登録してください。</p><div class="place-actions"><button class="btn" data-action="open-app-settings">アプリの設定へ</button></div></div>`;
+  }
+  return `<div class="card"><h3>2人で同期</h3><p class="small">この旅行を、相手のスマホと同じ内容にそろえます。内容は暗号化して送るので、サーバーには読めません(誕生日と写真は送りません)。</p><div class="place-actions"><button class="btn primary" data-action="sync-start">同期を始める</button></div></div>`;
 }
 
 function appSettings() {
@@ -218,5 +242,11 @@ function appSettings() {
     <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
   <div class="card"><h3>バックアップ</h3><p class="small">機種変更や故障に備えて、ときどき保存してね(誕生日・写真も含む自分用)。</p>
   <div class="place-actions"><button class="btn" data-action="export-all">${ICON.download} すべての旅行を保存</button>${state.currentId ? `<button class="btn" data-action="export-trip" data-id="${esc(state.currentId)}">${ICON.download} この旅行だけ保存</button>` : ''}<button class="btn" data-action="import">${ICON.upload} 読み込む</button></div></div>
+  <div class="card"><h3>同期サーバー</h3><p class="small">2人で旅行を同期するときの、暗号化した内容の受け渡し先です(サーバーは中身を読めません)。自分で用意した https://〜.workers.dev のURLを入れます。入れるまで、このアプリは通信しません。</p>
+  <input id="relayUrl" class="field" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://tabi-shiori-relay.xxxx.workers.dev" value="${esc(state.settings.relay)}" aria-label="同期サーバーのURL">
+  <div class="place-actions"><button class="btn primary" data-action="save-relay">保存</button></div></div>
+  <div class="card"><h3>同期リンクで参加</h3><p class="small">相手から送られたリンクを貼り付けると、その旅行がこの端末に入り、同期が始まります。</p>
+  <textarea id="joinText" class="field" rows="2" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#sync=…" aria-label="同期リンク"></textarea>
+  <div class="place-actions"><button class="btn" data-action="join-paste">参加する</button></div></div>
   ${storageNotice()}`;
 }

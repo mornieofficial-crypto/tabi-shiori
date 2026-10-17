@@ -8,6 +8,7 @@ import { navTargets } from './nav.js';
 import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
 import { avatar } from './views.js';
 import { ICON } from './icons.js';
+import { peekLink, joinTrip } from './sync.js';
 import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 const err = (form, msg) => {
@@ -117,7 +118,7 @@ export function placeForm(t, p) {
   openModal(
     `<form id="modalForm"><h2>${editing ? '候補を編集' : '行きたい場所を追加'}</h2><div class="formgrid">
     ${item('名前 *', `<input class="field" name="name" required maxlength="130" value="${esc(p?.name || '')}" placeholder="お店・観光スポット名">`)}
-    ${item('ジャンル', `<select class="field" name="cat">${CATS.map((c) => `<option ${p?.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`)}
+    ${item('ジャンル', `<select class="field" name="cat">${[...CATS, ...t.genres.map((g) => g.name)].map((c) => `<option ${p?.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`)}
     ${item('写真（任意）', `<div class="flex"><span class="thumb big" id="placePhotoTile"></span><label class="btn tiny">${ICON.camera} 写真を選ぶ<input type="file" id="placePhotoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="placePhotoRemove" hidden>外す</button></div><p class="small">この端末の中だけに保存します(撮影場所の情報は取り除き、小さくして保存)。共有用のファイルには入りません。</p>`)}
     ${item('マーク（なしならジャンルの絵文字）', emojiField('emoji', p?.emoji || '', { allowEmpty: true, label: 'マーク' }))}
     ${item('エリア', `<input class="field" name="region" maxlength="100" value="${esc(p?.region || '')}" placeholder="例：京都市・祇園">`)}
@@ -137,7 +138,7 @@ export function placeForm(t, p) {
         lon = Number(lonS);
         if (!latS || !lonS || !Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return err(form, '緯度・経度は両方、正しい数値で入れてください');
       }
-      const cat = CATS.includes(formVal(f, 'cat')) ? formVal(f, 'cat') : 'その他';
+      const cat = [...CATS, ...t.genres.map((g) => g.name)].includes(formVal(f, 'cat')) ? formVal(f, 'cat') : 'その他';
       const data = { name, cat, photo, emoji: formVal(f, 'emoji'), region: formVal(f, 'region'), location: formVal(f, 'location'), memo: formVal(f, 'memo'), lat, lon };
       if (editing) Object.assign(p, data);
       else t.places.push({ id: uid(), ...data, votes: {} });
@@ -263,6 +264,52 @@ export function bookingForm(t, b) {
       else t.bookings.push({ id: uid(), ...data, done: false });
       state.tab = 'gear';
       state.gearTab = 'booking';
+      touch(t);
+      hooks.render();
+    },
+  );
+}
+
+// 確認の画面(✓で実行、×でやめる)
+export function confirmForm(title, message, okLabel, onOk) {
+  openModal(`<form id="modalForm"><h2>${esc(title)}</h2><p>${esc(message)}</p><div class="modalactions"><button type="button" class="btn" data-action="close">キャンセル</button><button type="submit" class="btn primary">${esc(okLabel)}</button></div></form>`, () => {
+    onOk();
+  });
+}
+
+// 同期リンクで参加する(まず相手の旅行名を確かめてから、確認を出す)
+export async function syncJoinForm(j) {
+  toast('リンクを確かめています…');
+  let info;
+  try {
+    info = await peekLink(j);
+  } catch (e) {
+    return toast(e.message || 'リンクを確かめられませんでした');
+  }
+  confirmForm('同期に参加', `「${info.name}」を、この端末に追加して同期を始めます。`, '参加する', () => {
+    joinTrip(j)
+      .then(() => {
+        state.view = 'trip';
+        state.tab = 'schedule';
+        hooks.render();
+        toast('同期に参加しました');
+      })
+      .catch((e) => toast(e.message || '参加できませんでした'));
+  });
+}
+
+export function genreForm(t) {
+  openModal(
+    `<form id="modalForm"><h2>ジャンルを追加</h2><div class="formgrid">
+    ${item('名前 *', '<input class="field" name="name" required maxlength="10" placeholder="例：温泉・ドライブ">')}
+    ${item('マーク', emojiField('emoji', '♨️', { label: 'マーク' }))}
+    </div>${actions('キャンセル', '追加')}</form>`,
+    (f, form) => {
+      const name = formVal(f, 'name');
+      if (!name) return err(form, '名前を入れてください');
+      if (CATS.includes(name) || t.genres.some((g) => g.name === name)) return err(form, 'その名前のジャンルはすでにあります');
+      if (t.genres.length >= LIMITS.genres) return err(form, `追加できるジャンルは${LIMITS.genres}個までです`);
+      t.genres.push({ id: uid(), name, emoji: formVal(f, 'emoji') || '📍' });
       touch(t);
       hooks.render();
     },

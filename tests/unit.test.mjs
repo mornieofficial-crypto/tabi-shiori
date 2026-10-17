@@ -208,3 +208,15 @@ test('誕生日カラー: くすんだ黄色〜黄緑(色相35°〜95°)は使�
     }
   }
 });
+
+test('ジャンルの追加: 旅行ごとに持て、場所に使え、重複・初期名・長すぎる名前は弾く', () => {
+  const t = normalizeTrip({
+    genres: [{ id: 'g1', name: '温泉', emoji: '♨️' }, { id: 'g2', name: '温泉' }, { id: 'g3', name: '食事' }, { id: 'g4', name: '' }, { id: 'g5', name: 'あ'.repeat(30) }],
+    places: [{ id: 'p', name: 'x', cat: '温泉' }, { id: 'q', name: 'y', cat: '知らない' }],
+  });
+  assert.deepEqual(t.genres.map((g) => g.name), ['温泉', 'あ'.repeat(10)]);
+  assert.equal(t.places[0].cat, '温泉');
+  assert.equal(t.places[1].cat, 'その他');
+  assert.equal(normalizeTrip({}).genres.length, 0);
+  assert.equal(normalizeTrip({ places: [{ id: 'p', name: 'z', cat: '温泉' }] }).places[0].cat, 'その他');
+});

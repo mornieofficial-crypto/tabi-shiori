@@ -349,3 +349,8 @@ body:not([data-view="list"]) .wrap { padding-top: calc(60px + env(safe-area-inse
 body[data-view="list"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
 body[data-view="list"] .foot, body[data-view="app"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(247, 246, 242, 0), var(--base) 55%); }
 body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+
+/* ジャンルの一覧と、追加したジャンルの削除 */
+.genrelist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.cat.custom { display: inline-flex; align-items: center; gap: 4px; padding-right: 4px; }
+.chipx { border: 0; background: none; color: inherit; width: 24px; height: 24px; border-radius: 50%; font-size: 15px; line-height: 1; }

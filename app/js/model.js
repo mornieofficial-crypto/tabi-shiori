@@ -8,7 +8,7 @@ import { BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.j
 export const SCHEMA = 2;
 // 夫婦2人で使う前提。2人を超える旅行データを読み込んだ場合は、削除できるようにだけしておく
 export const COUPLE = 2;
-export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, bookings: 100, days: 30 };
+export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, bookings: 100, genres: 20, days: 30 };
 
 export const CATS = ['食事', 'カフェ', '観光', '宿泊', '釣り', 'お土産', '朝食', '移動', 'その他'];
 export const CAT_EMOJI = { 食事: '🍜', カフェ: '☕', 観光: '🌿', 宿泊: '♨️', 釣り: '🎣', お土産: '🎁', 朝食: '🥐', 移動: '🚗', その他: '📍' };
@@ -56,7 +56,7 @@ export function normalizeTheme(raw, members) {
   return { mode: 'inherit' };
 }
 
-function normalizePlace(raw, memberIds, used) {
+function normalizePlace(raw, memberIds, used, allowedCats = new Set(CATS)) {
   const p = raw && typeof raw === 'object' ? raw : {};
   const lat = num(p.lat);
   const lon = num(p.lon);
@@ -68,7 +68,7 @@ function normalizePlace(raw, memberIds, used) {
   return {
     id: uniqueId(p.id, used),
     name: str(p.name, 130).trim() || '(名前なし)',
-    cat: CATS.includes(p.cat) ? p.cat : 'その他',
+    cat: allowedCats.has(p.cat) ? p.cat : 'その他',
     emoji: str(p.emoji, 8),
     photo: isPhoto(p.photo, PLACE_PHOTO_MAX_LENGTH) ? p.photo : '',
     region: str(p.region, 100),
@@ -115,6 +115,16 @@ export function normalizeTrip(raw) {
   const members = memberSrc.map((m, i) => normalizeMember(m, i, usedM));
   if (!members.length) members.push(normalizeMember({}, 0, usedM));
 
+  // 旅行ごとに追加したジャンル(初期のジャンルと同じ名前は作れない)
+  const usedG = new Set();
+  const genreNames = new Set(CATS);
+  const genres = [];
+  for (const g of (Array.isArray(t.genres) ? t.genres : []).slice(0, LIMITS.genres)) {
+    const name = str(g?.name, 10).trim();
+    if (!name || genreNames.has(name)) continue;
+    genreNames.add(name);
+    genres.push({ id: uniqueId(g?.id, usedG), name, emoji: str(g?.emoji, 8) || '📍' });
+  }
   const placesSrc = (Array.isArray(t.places) ? t.places : []).slice(0, LIMITS.places);
   const memberIds = members.map((m) => m.id);
   const usedP = new Set();
@@ -126,7 +136,7 @@ export function normalizeTrip(raw) {
       });
       p = { ...p, votes };
     }
-    return normalizePlace(p, memberIds, usedP);
+    return normalizePlace(p, memberIds, usedP, genreNames);
   });
   const placeIds = new Set(places.map((p) => p.id));
 
@@ -161,6 +171,7 @@ export function normalizeTrip(raw) {
     theme: normalizeTheme(t.theme, members),
     background: BACKGROUND_IDS.has(t.background) && (t.background !== 'photo' || isPhoto(t.backgroundPhoto)) ? t.background : 'plain',
     backgroundPhoto: isPhoto(t.backgroundPhoto) ? t.backgroundPhoto : '',
+    genres,
     places,
     schedule,
     checklist,

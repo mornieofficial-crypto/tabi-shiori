@@ -1,7 +1,8 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
 import { renderScreen, renderNavInner } from './views.js';
-import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser } from './forms.js';
-import { closeModal, modalOpen, toast, download, shareFile, handleEmojiClick } from './ui.js';
+import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm } from './forms.js';
+import { closeModal, modalOpen, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
+import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, normalizeRelay, parseSyncLink, links } from './sync.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
 import { moveProgress, dayStart } from './transit.js';
 import { isHex } from './color.js';
@@ -223,6 +224,26 @@ document.addEventListener('click', (e) => {
   const t = current();
   switch (a) {
     case 'close': return closeModal();
+    case 'save-relay': {
+      const v = $('relayUrl').value.trim();
+      if (!v) {
+        state.settings.relay = '';
+        saveSettings();
+        toast('同期サーバーを外しました');
+        return render();
+      }
+      const r = normalizeRelay(v);
+      if (!r) return toast('https://〜.workers.dev の形で入れてください');
+      state.settings.relay = r;
+      saveSettings();
+      toast('保存しました');
+      return render();
+    }
+    case 'join-paste': {
+      const j = parseSyncLink($('joinText').value);
+      if (!j) return toast('同期リンクを読み取れませんでした');
+      return syncJoinForm(j);
+    }
     case 'go-list': state.view = 'list'; render(); return scrollTo(0, 0);
     case 'open-app-settings': state.view = 'app'; render(); return scrollTo(0, 0);
     case 'new-trip': return tripForm();
@@ -337,6 +358,16 @@ document.addEventListener('click', (e) => {
       closeModal();
       return removeWithUndo(t, `「${bk.title}」`, () => (t.bookings = t.bookings.filter((x) => x.id !== id)));
     }
+    case 'add-genre': return genreForm(t);
+    case 'delete-genre': {
+      const g = t.genres.find((x) => x.id === id);
+      if (!g) return;
+      return removeWithUndo(t, `ジャンル「${g.name}」`, () => {
+        t.genres = t.genres.filter((x) => x.id !== id);
+        for (const p of t.places) if (p.cat === g.name) p.cat = 'その他';
+        if (state.filter === g.name) state.filter = 'すべて';
+      });
+    }
     case 'toggle-reorder': state.reorder = !state.reorder; return render();
     case 'move-check': {
       const i = t.checklist.findIndex((x) => x.id === id);
@@ -346,6 +377,40 @@ document.addEventListener('click', (e) => {
       touch(t);
       return render();
     }
+    case 'sync-start': {
+      toast('同期を始めています…');
+      startSync(t, state.settings.relay)
+        .then(() => {
+          render();
+          toast('同期を始めました。「リンクを送る」で相手に送ってね');
+        })
+        .catch((e) => toast(e.message || '同期を始められませんでした'));
+      return;
+    }
+    case 'sync-share': {
+      if (!links.has(t.id)) return;
+      // 共有シートはボタンを押した直後に開く必要がある
+      shareLinkText(linkUrl(t), `旅のプラン「${t.name}」の同期リンク`).then((r) => {
+        if (r === 'copied') toast('リンクをコピーしました。相手に送ってね');
+        else if (r === 'failed') toast('リンクを共有できませんでした');
+      });
+      return;
+    }
+    case 'sync-now': {
+      syncTrip(t).then(() => {
+        render();
+        const l = links.get(t.id);
+        toast(l?.status === 'error' ? l.error : '同期しました');
+      });
+      return;
+    }
+    case 'sync-stop':
+      return confirmForm('同期をやめる', 'この端末の同期をやめます。旅行の内容は、この端末にも相手の端末にもそのまま残ります。', 'やめる', () => {
+        stopSync(t.id).then(() => {
+          render();
+          toast('同期をやめました');
+        });
+      });
     case 'copy-schedule': return copySchedule(t);
   }
 });
@@ -415,7 +480,20 @@ document.addEventListener('keydown', (e) => {
     state.persistent = false;
   }
   state.activeDay = todayDayOrFirst(current());
+  await loadLinks(state.trips);
+  hooks.onChange = (t) => scheduleSync(t);
+  hooks.onSyncState = () => {
+    // 旅行の設定を見ているときだけ、同期の状態を描き直す(入力中は触らない)
+    if (state.view === 'trip' && state.tab === 'tripsettings' && !modalOpen() && !document.activeElement?.matches?.('input, textarea, select')) render();
+  };
   render();
+  startPolling(current);
+  // 同期リンクを開いて来たときは、参加の確認を出す
+  const joinLink = parseSyncLink(location.hash);
+  if (joinLink) {
+    history.replaceState(null, '', location.pathname + location.search);
+    syncJoinForm(joinLink);
+  }
   if (!state.persistent) toast('この環境では保存できません。書き出しを使ってね');
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();

@@ -125,6 +125,24 @@ export async function shareFile(filename, text, title) {
   return 'unsupported';
 }
 
+// リンクなどの文字を、共有シート(AirDrop・メッセージなど)で渡す。使えなければコピーする。
+export async function shareLinkText(url, title) {
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, url });
+      return 'shared';
+    }
+  } catch (e) {
+    if (e?.name === 'AbortError') return 'cancelled';
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    return 'copied';
+  } catch {
+    return 'failed';
+  }
+}
+
 // 絵文字フィールド。ボタンを押すと一覧が開き、選ぶと hidden input に入る
 export function emojiField(name, value, { groups = EMOJI_GROUPS, allowEmpty = false, label = '絵文字' } = {}) {
   return `<div class="emojifield" data-emojifield>

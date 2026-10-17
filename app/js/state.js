@@ -4,7 +4,7 @@ import { isHex, themeVars, DEFAULT_ACCENT } from './color.js';
 
 export const state = {
   trips: [],
-  settings: { accent: DEFAULT_ACCENT },
+  settings: { accent: DEFAULT_ACCENT, relay: '' },
   currentId: null,
   // view: list=旅行の一覧 / trip=1つの旅行の中(下のタブ) / app=アプリの設定
   view: 'list',
@@ -17,7 +17,7 @@ export const state = {
   persistent: true,
 };
 
-export const hooks = { onSaveError: () => {}, render: () => {} };
+export const hooks = { onSaveError: () => {}, render: () => {}, onChange: () => {}, onSyncState: () => {} };
 
 export const current = () => state.trips.find((t) => t.id === state.currentId) || null;
 export const getPlace = (t, id) => t.places.find((p) => p.id === id);
@@ -26,11 +26,17 @@ export const getMember = (t, id) => t.members.find((m) => m.id === id);
 const dirty = new Set();
 let timer = 0;
 
-export function touch(trip) {
-  trip.updated = new Date().toISOString();
+// 保存だけ行う(更新時刻は変えない。同期で取り込んだ内容の保存に使う)
+export function markDirty(trip) {
   dirty.add(trip.id);
   clearTimeout(timer);
   timer = setTimeout(flush, 200);
+}
+
+export function touch(trip) {
+  trip.updated = new Date().toISOString();
+  markDirty(trip);
+  hooks.onChange(trip); // 同期中の旅行なら、あとで送る
 }
 
 export async function flush() {
@@ -113,6 +119,7 @@ export async function load() {
   state.tab = 'schedule';
   const s = await db.getMeta('settings');
   if (s && isHex(s.accent)) state.settings.accent = s.accent.toLowerCase();
+  if (s && typeof s.relay === 'string') state.settings.relay = s.relay;
 }
 
 export function applyTheme(trip) {
