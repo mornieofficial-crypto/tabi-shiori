@@ -12,6 +12,7 @@ const $ = (id) => document.getElementById(id);
 function render() {
   const t = current();
   applyTheme(t);
+  document.body.classList.toggle('has-nav', !!t);
   $('headright').innerHTML = renderHeadRight(t);
   $('view').innerHTML = t ? renderTrip(t) : renderHome();
   updateTracks();

@@ -12,18 +12,23 @@ a { color: var(--accent-ink); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 [hidden] { display: none !important; }
 
-.wrap { max-width: 800px; margin: auto; padding: 16px 16px calc(96px + env(safe-area-inset-bottom)); }
+.wrap { max-width: 800px; margin: auto; padding: 16px 16px calc(120px + env(safe-area-inset-bottom)); }
 .header { display: flex; align-items: center; gap: 11px; margin: 3px 0 21px; }
 .logo { width: 40px; height: 40px; display: grid; place-items: center; background: var(--tint); border-radius: 13px; font-size: 20px; }
 .brand { font-weight: 800; font-size: 19px; letter-spacing: -.025em; }
 .brand small { display: block; font-size: 10px; color: var(--sub); letter-spacing: .08em; font-weight: 500; }
 .headright { margin-left: auto; }
 
-.btn { display: inline-flex; gap: 6px; align-items: center; justify-content: center; padding: 10px 13px; border: 1px solid var(--tint-line); border-radius: 12px; background: var(--paper); color: var(--accent-ink); font-weight: 750; text-decoration: none; font-size: 13px; min-height: 44px; }
-.btn.primary { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
-.btn.light { background: #fff; color: var(--accent-ink); border-color: #fff; }
-.btn.muted { color: var(--sub); }
-.btn.danger { color: #9d453b; border-color: #edc9c2; }
+/* ボタン: 枠線ではなく、やわらかい影で浮かせる */
+.btn { display: inline-flex; gap: 6px; align-items: center; justify-content: center; padding: 10px 16px; border: 0; border-radius: 999px; background: var(--paper); color: var(--accent-ink); font-weight: 750; text-decoration: none; font-size: 13px; min-height: 44px; box-shadow: 0 1px 2px rgba(20, 40, 34, .08), 0 6px 16px rgba(20, 40, 34, .1); transition: transform .15s ease, box-shadow .15s ease; -webkit-tap-highlight-color: transparent; }
+.btn:active { transform: translateY(1px) scale(.97); box-shadow: 0 1px 2px rgba(20, 40, 34, .1), 0 2px 6px rgba(20, 40, 34, .1); }
+.btn.primary { background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); color: #fff; box-shadow: 0 2px 4px rgba(20, 40, 34, .15), 0 8px 20px rgba(20, 40, 34, .22); }
+@supports (color: color-mix(in srgb, red, blue)) {
+  .btn.primary { box-shadow: 0 2px 4px color-mix(in srgb, var(--accent-ink) 30%, transparent), 0 8px 20px color-mix(in srgb, var(--accent-ink) 38%, transparent); }
+}
+.btn.light { background: #fff; color: var(--accent-ink); box-shadow: 0 6px 18px rgba(0, 0, 0, .18); }
+.btn.muted { color: var(--sub); box-shadow: 0 1px 2px rgba(20, 40, 34, .06), 0 4px 10px rgba(20, 40, 34, .06); }
+.btn.danger { color: #9d453b; }
 .btn.tiny { padding: 7px 11px; min-height: 40px; font-size: 12px; }
 .btn.fill { width: 100%; }
 .chip { border-radius: 99px; border: 1px solid rgba(255, 255, 255, .5); padding: 5px 10px; font-size: 11px; color: #fff; background: rgba(255, 255, 255, .16); }
@@ -57,10 +62,17 @@ a { color: var(--accent-ink); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; border: 1px solid #0002; }
 .dot.big { width: 22px; height: 22px; margin: 0 0 0 auto; }
 
-.nav { display: flex; position: sticky; top: 6px; gap: 4px; background: var(--tint); border: 1px solid var(--tint-line); padding: 4px; border-radius: 15px; z-index: 5; margin: 10px 0 18px; }
-.nav button { flex: 1; background: none; border: 0; border-radius: 11px; padding: 10px 4px; font-size: 12px; font-weight: 800; color: var(--sub); min-height: 48px; }
-.nav button.active { background: #fff; color: var(--accent-ink); box-shadow: 0 2px 6px #17292320; }
-.nav .icon { font-size: 17px; display: block; }
+/* 下部タブバー: 画面の下に浮かぶ、すりガラス風のカプセル */
+.nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom)); width: min(calc(100% - 28px), 460px); display: flex; gap: 2px; padding: 6px; border-radius: 28px; z-index: 20; background: rgba(255, 255, 255, .96); border: 1px solid rgba(255, 255, 255, .8); box-shadow: 0 2px 6px rgba(20, 40, 34, .08), 0 14px 34px rgba(20, 40, 34, .2); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .nav { background: rgba(255, 255, 255, .72); -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8); }
+}
+.nav button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: none; border: 0; border-radius: 22px; padding: 7px 2px; font-size: 11px; font-weight: 800; color: var(--sub); min-height: 54px; transition: background .2s ease, color .2s ease, transform .15s ease; -webkit-tap-highlight-color: transparent; }
+.nav button:active { transform: scale(.94); }
+.nav button.active { background: var(--tint); color: var(--accent-ink); box-shadow: inset 0 0 0 1px var(--tint-line); }
+.nav .icon { font-size: 19px; line-height: 1.2; display: block; transition: transform .2s ease; }
+.nav button.active .icon { transform: translateY(-1px) scale(1.12); }
+body.has-nav #toastroot { bottom: calc(92px + env(safe-area-inset-bottom)); }
 .daytabs { display: flex; gap: 7px; overflow: auto; padding-bottom: 2px; }
 .daytabs button { flex: 1; min-width: 92px; padding: 11px 10px; border: 1px solid var(--line); background: #fff; border-radius: 12px; color: var(--sub); text-align: left; font-size: 12px; }
 .daytabs button.active { background: var(--accent-ink); color: #fff; border-color: var(--accent-ink); }
@@ -96,7 +108,7 @@ textarea.field { min-height: 100px; resize: vertical; }
 .track[data-state="arrived"] .rail::after { background: var(--accent-ink); }
 @keyframes bob { 0%, 100% { margin-top: 0; } 50% { margin-top: -3px; } }
 @media (prefers-reduced-motion: reduce) {
-  .rider { transition: none; }
+  .rider, .btn, .nav button, .nav .icon { transition: none; }
   .track[data-state="moving"] .rider { animation: none; }
   html { scroll-behavior: auto; }
 }
