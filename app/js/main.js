@@ -1,7 +1,7 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, saveSettings, applyTheme } from './state.js';
 import { renderHome, renderTrip, renderHeadRight } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, themeForm, navChooser } from './forms.js';
-import { closeModal, modalOpen, toast, download, handleEmojiClick } from './ui.js';
+import { closeModal, modalOpen, toast, download, shareFile, handleEmojiClick } from './ui.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
 import { moveProgress } from './transit.js';
 import { isHex } from './color.js';
@@ -147,12 +147,25 @@ document.addEventListener('click', (e) => {
       });
       return;
     }
-    case 'export-trip':
-    case 'export-trip-share': {
+    case 'export-trip': {
       const target = state.trips.find((x) => x.id === id);
       if (!target) return;
-      download(`trip-${target.date || 'plan'}${a === 'export-trip-share' ? '-share' : ''}.json`, serializeTrip(target, { share: a === 'export-trip-share' }));
-      return toast(a === 'export-trip-share' ? '共有用の旅行ファイルを保存したよ' : 'バックアップを保存したよ');
+      download(`trip-${target.date || 'plan'}.json`, serializeTrip(target));
+      return toast('バックアップを保存したよ');
+    }
+    case 'share-trip': {
+      const target = state.trips.find((x) => x.id === id);
+      if (!target) return;
+      const name = `trip-${target.date || 'plan'}-share.json`;
+      const text = serializeTrip(target, { share: true });
+      // 共有シートはボタンを押した直後に開く必要があるので、await の前に呼ぶ
+      shareFile(name, text, target.name).then((r) => {
+        if (r === 'unsupported') {
+          download(name, text);
+          toast('この端末では共有シートが使えないので、ファイルを保存したよ');
+        } else if (r === 'shared') toast('共有しました');
+      });
+      return;
     }
   }
   if (!t) return;

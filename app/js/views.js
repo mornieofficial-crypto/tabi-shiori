@@ -141,8 +141,8 @@ function renderSettings(t) {
   ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div><button class="btn tiny muted" data-action="edit-member" data-id="${esc(m.id)}">編集</button></div>`).join('')}
   <p class="small">誕生日はこの端末にだけ保存します。同行者に渡すファイルには「色」だけが入ります。</p></div>
   <div class="card"><div class="sectionactions"><h3>この旅行の色</h3><button class="btn tiny" data-action="edit-theme">変える</button></div><p>${esc(themeLabel(t))}</p></div>
-  <div class="card"><h3>共有とバックアップ</h3><p class="small">同行者へは「共有用」のファイルを送ります(誕生日は入りません)。自分のバックアップには「バックアップ用」を使ってね。</p>
-  <div class="place-actions"><button class="btn primary" data-action="export-trip-share" data-id="${esc(t.id)}">↓ 共有用で保存</button><button class="btn" data-action="export-trip" data-id="${esc(t.id)}">↓ バックアップ用で保存</button><button class="btn" data-action="import">↑ 読み込む</button><button class="btn" data-action="copy-schedule">📋 しおりをコピー</button></div>
+  <div class="card"><h3>共有とバックアップ</h3><p class="small">「共有」を押すと、AirDrop・メッセージ・ファイルへの保存などを選べます。共有用のファイルには誕生日が入りません。自分用には「バックアップ用で保存」を使ってね。</p>
+  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">📲 AirDropなどで共有</button><button class="btn" data-action="export-trip" data-id="${esc(t.id)}">↓ バックアップ用で保存</button><button class="btn" data-action="import">↑ 読み込む</button><button class="btn" data-action="copy-schedule">📋 しおりをコピー</button></div>
   <div class="notice warn">いまは端末内だけの保存です。リアルタイムの共同編集は今後追加予定で、そのときも内容は暗号化して送る設計です。</div></div>
   <div class="card"><h3>ナビについて</h3><p class="small">場所ごとの「ナビ」ボタンから、Yahoo!カーナビ・Yahoo!マップ・Appleマップを選べます。住所だけの場所は、先にYahoo!マップで位置を確認してから出発してね。</p></div>
   ${storageNotice()}`;

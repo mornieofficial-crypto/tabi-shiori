@@ -54,6 +54,24 @@ export function download(filename, text) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
+// 共有シート(AirDrop・メッセージ・ファイルへ保存など)でファイルを渡す。
+// 端末が対応していない場合は 'unsupported'。ボタンを押した直後(ユーザー操作の中)で呼ぶこと。
+export async function shareFile(filename, text, title) {
+  if (!navigator.share || !navigator.canShare) return 'unsupported';
+  // iPhoneのSafariは対応するファイル形式が限られるため、通らなければ text/plain で試す
+  for (const type of ['application/json', 'text/plain']) {
+    const file = new File([text], filename, { type });
+    if (!navigator.canShare({ files: [file] })) continue;
+    try {
+      await navigator.share({ files: [file], title });
+      return 'shared';
+    } catch (e) {
+      return e?.name === 'AbortError' ? 'cancelled' : 'unsupported';
+    }
+  }
+  return 'unsupported';
+}
+
 // 絵文字フィールド。ボタンを押すと一覧が開き、選ぶと hidden input に入る
 export function emojiField(name, value, { groups = EMOJI_GROUPS, allowEmpty = false, label = '絵文字' } = {}) {
   return `<div class="emojifield" data-emojifield>
