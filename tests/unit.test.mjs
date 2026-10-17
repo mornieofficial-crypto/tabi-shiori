@@ -151,3 +151,20 @@ test('背景: 許可された値だけ通り、不正な値・旧データは pl
   assert.equal(normalizeTrip({ background: 'url(http://x)' }).background, 'plain');
   assert.equal(normalizeTrip({}).background, 'plain');
 });
+
+test('背景の写真: 正しいJPEGだけ通り、共有用ファイルには入らない', () => {
+  const ok = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+  const t = normalizeTrip({ id: 'p', background: 'photo', backgroundPhoto: ok });
+  assert.equal(t.background, 'photo');
+  assert.equal(t.backgroundPhoto, ok);
+  // 写真が無い・不正なのに photo 指定 → plain に戻る
+  assert.equal(normalizeTrip({ background: 'photo' }).background, 'plain');
+  assert.equal(normalizeTrip({ background: 'photo', backgroundPhoto: 'data:text/html;base64,AAAA' }).background, 'plain');
+  assert.equal(normalizeTrip({ background: 'photo', backgroundPhoto: 'url(javascript:1)' }).backgroundPhoto, '');
+  assert.equal(normalizeTrip({ background: 'photo', backgroundPhoto: 'data:image/jpeg;base64,' + 'A'.repeat(800000) }).backgroundPhoto, '');
+  // 共有用は写真を除く / バックアップには含む
+  const shared = parseImport(serializeTrip(t, { share: true }))[0];
+  assert.equal(shared.backgroundPhoto, '');
+  assert.equal(shared.background, 'plain');
+  assert.equal(parseImport(serializeTrip(t))[0].backgroundPhoto, ok);
+});

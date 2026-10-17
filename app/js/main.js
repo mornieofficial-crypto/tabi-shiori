@@ -14,6 +14,7 @@ function render() {
   applyTheme(t);
   document.body.classList.toggle('has-nav', !!t);
   document.body.dataset.bg = t ? t.background : 'plain';
+  document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
   $('headright').innerHTML = renderHeadRight(t);
   $('view').innerHTML = t ? renderTrip(t) : renderHome();
   updateTracks();

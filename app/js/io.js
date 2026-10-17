@@ -12,6 +12,9 @@ export class ImportError extends Error {}
 function forShare(trip) {
   return {
     ...trip,
+    // 自分の写真は共有しない(中に写っている人や場所が分かるため)
+    background: trip.background === 'photo' ? 'plain' : trip.background,
+    backgroundPhoto: '',
     members: trip.members.map((m) => ({ ...m, birthday: '', colorAuto: false })),
   };
 }

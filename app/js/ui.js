@@ -54,6 +54,23 @@ export function download(filename, text) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
+// 写真を縮小してJPEGに作り直す。作り直すことで、撮影場所などのメタデータは取り除かれる。
+export async function resizeImage(file, maxSide = 1200) {
+  if (!file || !String(file.type).startsWith('image/') || file.size > 25 * 1024 * 1024) throw new Error('bad image');
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(bmp.width * scale));
+  canvas.height = Math.max(1, Math.round(bmp.height * scale));
+  canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  bmp.close?.();
+  for (const q of [0.72, 0.6, 0.5, 0.4]) {
+    const url = canvas.toDataURL('image/jpeg', q);
+    if (url.length <= 600000) return url;
+  }
+  throw new Error('too large');
+}
+
 // 共有シート(AirDrop・メッセージ・ファイルへ保存など)でファイルを渡す。
 // 端末が対応していない場合は 'unsupported'。ボタンを押した直後(ユーザー操作の中)で呼ぶこと。
 export async function shareFile(filename, text, title) {

@@ -5,9 +5,9 @@ import { state, hooks, touch, addTrip, getPlace, getMember } from './state.js';
 import { birthdayColor, isHex } from './color.js';
 import { MODES } from './transit.js';
 import { navTargets } from './nav.js';
-import { openModal, closeModal, toast, emojiField, formVal, formInt } from './ui.js';
+import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
 import { avatar } from './views.js';
-import { BACKGROUNDS, BACKGROUND_IDS } from './backgrounds.js';
+import { BACKGROUNDS, BACKGROUND_IDS, isPhoto } from './backgrounds.js';
 
 const err = (form, msg) => {
   const el = form.querySelector('.formerror');
@@ -225,6 +225,7 @@ export function checkForm(t) {
 
 export function themeForm(t) {
   const th = t.theme;
+  let photo = t.backgroundPhoto; // 選び直した写真は、「決定」を押すまで旅行には反映しない
   const opt = (value, label, checked, extra = '') => `<label class="themeopt"><input type="radio" name="mode" value="${esc(value)}" ${checked ? 'checked' : ''}><span>${label}</span>${extra}</label>`;
   openModal(
     `<form id="modalForm"><h2>この旅行の色と背景</h2><div class="formgrid">
@@ -234,11 +235,15 @@ export function themeForm(t) {
     ${t.members.length >= 2 ? opt('duo', `${esc(t.members[0].name)}と${esc(t.members[1].name)}の色(2色)`, th.mode === 'duo', `<span class="dot big" style="background:linear-gradient(90deg,${esc(t.members[0].color)} 50%,${esc(t.members[1].color)} 50%)"></span>`) : ''}
     ${opt('custom', '好きな色', th.mode === 'custom', `<input type="color" class="colorinput" name="hex" value="${esc(th.hex || '#3b6ea5')}" aria-label="好きな色">`)}
     <div class="group" style="margin:8px 0 0">背景</div>
-    <div class="bgpicker" role="radiogroup" aria-label="背景">${BACKGROUNDS.map((b) => `<label class="bgopt"><input type="radio" name="background" value="${b.id}" ${t.background === b.id ? 'checked' : ''}><span class="bgtile" data-bg="${b.id}"></span><span class="bglabel">${esc(b.label)}</span></label>`).join('')}</div>
+    <div class="bgpicker" role="radiogroup" aria-label="背景">${BACKGROUNDS.map((b) => `<label class="bgopt"><input type="radio" name="background" value="${b.id}" ${t.background === b.id ? 'checked' : ''}><span class="bgtile" data-bg="${b.id}"></span><span class="bglabel">${esc(b.label)}</span></label>`).join('')}<label class="bgopt"><input type="radio" name="background" value="photo" ${t.background === 'photo' ? 'checked' : ''} ${photo ? '' : 'disabled'}><span class="bgtile" id="photoTile">${photo ? '' : '📷'}</span><span class="bglabel">写真</span></label></div>
+    <div class="flex"><label class="btn tiny">📷 写真を選ぶ<input type="file" id="photoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="photoRemove" ${photo ? '' : 'hidden'}>写真を外す</button></div>
+    <p class="small">写真はこの端末の中だけに保存します。撮影場所などの情報は取り除き、小さくして保存します。共有用のファイルには入りません。</p>
     </div>${actions('キャンセル', '決定')}</form>`,
     (f) => {
-      const bg = formVal(f, 'background');
+      let bg = formVal(f, 'background');
+      if (bg === 'photo' && !photo) bg = 'plain';
       t.background = BACKGROUND_IDS.has(bg) ? bg : 'plain';
+      t.backgroundPhoto = photo;
       const v = formVal(f, 'mode');
       if (v === 'duo') t.theme = { mode: 'duo' };
       else if (v === 'custom' && isHex(formVal(f, 'hex'))) t.theme = { mode: 'custom', hex: formVal(f, 'hex').toLowerCase() };
@@ -248,6 +253,38 @@ export function themeForm(t) {
       hooks.render();
     },
   );
+  const form = document.getElementById('modalForm');
+  const radio = form.querySelector('input[name=background][value=photo]');
+  const tile = form.querySelector('#photoTile');
+  const remove = form.querySelector('#photoRemove');
+  const showPhoto = () => {
+    tile.style.backgroundImage = photo ? `url("${photo}")` : '';
+    tile.style.backgroundSize = 'cover';
+    tile.style.backgroundPosition = 'center';
+    tile.textContent = photo ? '' : '📷';
+    radio.disabled = !photo;
+    remove.hidden = !photo;
+  };
+  showPhoto();
+  form.querySelector('#photoFile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const url = await resizeImage(file);
+      if (!isPhoto(url)) throw new Error('invalid');
+      photo = url;
+      showPhoto();
+      radio.checked = true;
+    } catch {
+      err(form, 'この写真は読み込めませんでした。別の写真で試してね');
+    }
+  });
+  remove.addEventListener('click', () => {
+    photo = '';
+    showPhoto();
+    if (radio.checked) form.querySelector('input[name=background][value=plain]').checked = true;
+  });
 }
 
 // ナビの選択。住所だけの場所は、位置を確認してから開く導線にする
