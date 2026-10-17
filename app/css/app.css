@@ -100,7 +100,7 @@ textarea.field { min-height: 100px; resize: vertical; }
 
 /* 移動中の乗り物: 時間軸(縦の線)の上を動く */
 .timeline { position: relative; }
-.liverider { position: absolute; left: -1px; top: 0; width: 36px; height: 36px; margin-left: -18px; display: grid; place-items: center; font-size: 21px; line-height: 1; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--accent), 0 6px 14px rgba(20, 40, 34, .25); z-index: 3; pointer-events: none; }
+.liverider { position: absolute; left: -1px; top: 0; width: 36px; height: 36px; margin-left: -18px; display: grid; place-items: center; font-size: 26px; line-height: 1; background: none; z-index: 3; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
   .btn, .nav button, .nav .icon { transition: none; }
   html { scroll-behavior: auto; }
