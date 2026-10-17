@@ -288,3 +288,24 @@ body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-b
 .nav .icon svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .nav button.active .icon { transform: none; }
 .nav button.active .icon svg { stroke-width: 2.3; }
+
+/* ---- 下のタブ: 水のようなガラスの丸が、選んだタブへ滑って浮き出る ---- */
+.nav { overflow: visible; background: rgba(255, 255, 255, .62); border: 1px solid rgba(255, 255, 255, .85); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), inset 0 -1px 0 rgba(20, 40, 34, .04), 0 2px 6px rgba(20, 40, 34, .08), 0 16px 36px rgba(20, 40, 34, .2); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .nav { -webkit-backdrop-filter: blur(26px) saturate(1.9); backdrop-filter: blur(26px) saturate(1.9); }
+}
+.nav button { position: relative; z-index: 1; background: none !important; box-shadow: none !important; transition: color .35s ease; }
+.nav button.active { color: var(--accent-ink); }
+.navglass { position: absolute; z-index: 0; top: 5px; bottom: 5px; left: 0; width: 0; border-radius: 24px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .55)), var(--tint);
+  border: 1px solid rgba(255, 255, 255, .95);
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 1), inset 0 -7px 14px var(--tint-line), 0 6px 16px rgba(20, 40, 34, .2), 0 1px 3px rgba(20, 40, 34, .12);
+  opacity: 0; }
+.nav.ready .navglass { opacity: 1; transition: transform .5s cubic-bezier(.3, 1.45, .55, 1), width .5s cubic-bezier(.3, 1.45, .55, 1), opacity .2s ease; }
+.navglass.flow { animation: liquid .5s ease; }
+@keyframes liquid { 0% { scale: 1 1; } 35% { scale: 1.22 .9; } 70% { scale: .98 1.04; } 100% { scale: 1 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .nav.ready .navglass { transition: none; }
+  .navglass.flow { animation: none; }
+  .nav button { transition: none; }
+}

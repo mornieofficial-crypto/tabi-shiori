@@ -76,8 +76,9 @@ const TABS = [
   ['settings', tabIcon('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), '設定'],
 ];
 
-function renderNav() {
-  return `<nav class="nav" aria-label="メインメニュー">${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}</nav>`;
+// 下のタブ。画面を描き直しても残る要素(#navroot)に一度だけ入れ、選択の丸い「ガラス」を滑らせる
+export function renderNavInner() {
+  return `<span class="navglass" aria-hidden="true"></span>${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}`;
 }
 
 function tripHero(t) {
@@ -91,7 +92,7 @@ export function renderScreen(t) {
   else if (tab === 'settings') body = renderSettings(t);
   else if (!t) body = renderNoTrip();
   else body = tripHero(t) + { schedule: renderSchedule, places: renderPlaces, gear: renderGear }[tab](t);
-  return body + renderNav();
+  return body;
 }
 
 function daytabs(t) {

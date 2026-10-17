@@ -1,5 +1,5 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
-import { renderScreen, renderHeadRight } from './views.js';
+import { renderScreen, renderHeadRight, renderNavInner } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, handleEmojiClick } from './ui.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
@@ -8,6 +8,38 @@ import { isHex } from './color.js';
 import { normalizeTheme } from './model.js';
 
 const $ = (id) => document.getElementById(id);
+
+// 下のタブ: 選択の変化に合わせて、ガラスの丸を目的のタブへ滑らせる
+let navReady = false;
+function updateNav() {
+  const nav = $('navroot');
+  if (!nav.firstChild) nav.innerHTML = renderNavInner();
+  let active = null;
+  nav.querySelectorAll('button[data-tab]').forEach((b) => {
+    const on = b.dataset.tab === state.tab;
+    b.classList.toggle('active', on);
+    if (on) {
+      b.setAttribute('aria-current', 'page');
+      active = b;
+    } else b.removeAttribute('aria-current');
+  });
+  const glass = nav.querySelector('.navglass');
+  if (!active || !glass) return;
+  const x = active.offsetLeft;
+  const moved = glass.dataset.x !== String(x);
+  glass.style.width = active.offsetWidth + 'px';
+  glass.style.transform = 'translateX(' + x + 'px)';
+  glass.dataset.x = String(x);
+  if (moved && navReady) {
+    // 水がのびてまとまるような動き(動きを減らす設定では CSS 側で止める)
+    glass.classList.remove('flow');
+    void glass.offsetWidth;
+    glass.classList.add('flow');
+  }
+  navReady = true;
+  nav.classList.add('ready');
+}
+addEventListener('resize', updateNav);
 
 function render() {
   const t = current();
@@ -18,6 +50,7 @@ function render() {
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
   $('headright').innerHTML = renderHeadRight(t);
   $('view').innerHTML = renderScreen(t);
+  updateNav();
   updateTracks();
 }
 hooks.render = render;
