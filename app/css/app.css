@@ -379,3 +379,7 @@ body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-b
 .chevd .ico { width: 18px; height: 18px; }
 .chevd.open { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) { .chevd { transition: none; } }
+
+/* 設定ページの見出しと「どこの設定か」の一文 */
+.scope { font-size: 12px; color: var(--sub); margin: -8px 2px 6px; }
+.group { margin: 22px 3px 7px; }

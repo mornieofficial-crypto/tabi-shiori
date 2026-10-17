@@ -244,8 +244,14 @@ document.addEventListener('click', (e) => {
       if (!j) return toast('同期リンクを読み取れませんでした');
       return syncJoinForm(j);
     }
-    case 'go-list': state.view = 'list'; render(); return scrollTo(0, 0);
-    case 'open-app-settings': state.view = 'app'; render(); return scrollTo(0, 0);
+    case 'go-list': {
+      // アプリの設定を、旅行の設定から開いたときは、その旅行に戻る
+      state.view = state.view === 'app' && state.backTo === 'trip' && current() ? 'trip' : 'list';
+      state.backTo = '';
+      render();
+      return scrollTo(0, 0);
+    }
+    case 'open-app-settings': state.backTo = state.view === 'trip' ? 'trip' : 'list'; state.view = 'app'; render(); return scrollTo(0, 0);
     case 'new-trip': return tripForm();
     case 'open-trip': selectTrip(id); state.view = 'trip'; state.activeDay = todayDayOrFirst(state.trips.find((x) => x.id === id)); state.tab = 'schedule'; render(); return scrollTo(0, 0);
     case 'import': return $('importFile').click();

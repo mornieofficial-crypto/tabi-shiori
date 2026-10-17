@@ -206,29 +206,35 @@ function themeLabel(t) {
 }
 
 // 設定タブ = 「この旅行の設定」+「アプリ全体の設定」
+// ---- 設定は2つの階層に分ける ----
+//  旅行の設定 = この旅行だけのこと(内容・見た目・共有と保存・同期)
+//  アプリの設定 = すべての旅行に共通のこと(アプリの色・データ・同期サーバー)
 function renderTripSettings(t) {
-  return `<h2 class="title">旅行の設定</h2>${tripSettings(t)}`;
+  return `<h2 class="title">旅行の設定</h2><p class="scope">この旅行「${esc(t.name)}」だけの設定です。</p>${tripSettings(t)}`;
 }
 
 function renderAppPage() {
-  return `<h2 class="title">アプリの設定</h2>${appSettings()}`;
+  return `<h2 class="title">アプリの設定</h2><p class="scope">すべての旅行に共通の設定です。</p>${appSettings()}`;
 }
 
 function tripSettings(t) {
-  return `<div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
+  return `<div class="group">旅行の内容</div>
+  <div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
   <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < COUPLE ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
   ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div>${penBtn('edit-member', m.id, `${m.name}を編集`)}</div>`).join('')}
   <p class="small">誕生日はこの端末にだけ保存します。</p></div>
   <div class="card"><div class="sectionactions"><h3>ジャンル</h3><button class="btn tiny" data-action="add-genre">＋ 追加</button></div>
   <p class="small">行きたい場所の分け方です。初期のジャンルに足して、この旅行だけのジャンルを作れます。</p>
   <div class="genrelist">${CATS.map((c) => `<span class="cat" data-cat="${esc(c)}">${esc(CAT_EMOJI[c])} ${esc(c)}</span>`).join('')}${t.genres.map((g) => `<span class="cat custom" data-cat="">${esc(g.emoji)} ${esc(g.name)}<button type="button" class="chipx" data-action="delete-genre" data-id="${esc(g.id)}" aria-label="「${esc(g.name)}」を削除">×</button></span>`).join('')}</div></div>
+  <div class="group">見た目</div>
   <div class="card"><div class="sectionactions"><h3>色と背景</h3>${penBtn('edit-theme', undefined, '色と背景を変える')}</div><p>色：${esc(themeLabel(t))}</p><p>背景：${esc(backgroundLabel(t.background))}</p></div>
-  <div class="card"><h3>共有</h3><p class="small">共有用のファイルには、誕生日と写真が入りません。</p>
-  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">${ICON.share} AirDropなどで共有</button><button class="btn" data-action="copy-schedule">${ICON.copy} しおりをコピー</button></div></div>
+  <div class="group">共有・保存・同期</div>
+  <div class="card"><h3>共有と保存</h3><p class="small">共有用のファイルには、誕生日と写真が入りません。保存(バックアップ)用には、誕生日と写真も入ります。</p>
+  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">${ICON.share} AirDropなどで共有</button><button class="btn" data-action="export-trip" data-id="${esc(t.id)}">${ICON.download} この旅行を保存</button><button class="btn" data-action="copy-schedule">${ICON.copy} しおりをコピー</button></div></div>
   ${syncCard(t)}`;
 }
 
-// 2人で同期(旅行の設定の中)
+// 2人で同期(この旅行の同期。サーバーの登録は、アプリの設定)
 function syncCard(t) {
   const l = links.get(t.id);
   if (l) {
@@ -239,21 +245,24 @@ function syncCard(t) {
     <p class="small">内容は暗号化して送ります。リンクを知っている人は、この旅行を読み書きできるので、相手以外には渡さないでね。</p></div>`;
   }
   if (!state.settings.relay) {
-    return `<div class="card"><h3>2人で同期</h3><p class="small">2台のスマホで、同じ旅行を同じ内容にそろえます。使うには、先に「アプリの設定」で同期サーバーを登録してください。</p><div class="place-actions"><button class="btn" data-action="open-app-settings">アプリの設定へ</button></div></div>`;
+    return `<div class="card"><h3>2人で同期</h3><p class="small">2台のスマホで、この旅行を同じ内容にそろえます。使うには、先に「アプリの設定」で同期サーバーを登録してください。</p><div class="place-actions"><button class="btn" data-action="open-app-settings">アプリの設定へ</button></div></div>`;
   }
   return `<div class="card"><h3>2人で同期</h3><p class="small">この旅行を、相手のスマホと同じ内容にそろえます。内容は暗号化して送るので、サーバーには読めません(誕生日と写真は送りません)。</p><div class="place-actions"><button class="btn primary" data-action="sync-start">同期を始める</button></div></div>`;
 }
 
 function appSettings() {
-  return `<div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。</p>${swatches(state.settings.accent, 'app-color')}
+  return `<div class="group">見た目</div>
+  <div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。旅行ごとの色は、各旅行の設定で決めます。</p>${swatches(state.settings.accent, 'app-color')}
     <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
-  <div class="card"><h3>バックアップ</h3><p class="small">機種変更や故障に備えて、ときどき保存してね(誕生日・写真も含む自分用)。</p>
-  <div class="place-actions"><button class="btn" data-action="export-all">${ICON.download} すべての旅行を保存</button>${state.currentId ? `<button class="btn" data-action="export-trip" data-id="${esc(state.currentId)}">${ICON.download} この旅行だけ保存</button>` : ''}<button class="btn" data-action="import">${ICON.upload} 読み込む</button></div></div>
+  <div class="group">データ</div>
+  <div class="card"><h3>バックアップ</h3><p class="small">すべての旅行を、1つのファイルに保存します(誕生日・写真も含む自分用)。機種変更や故障に備えて、ときどき保存してね。1つの旅行だけ保存したいときは、その旅行の設定から。</p>
+  <div class="place-actions"><button class="btn" data-action="export-all">${ICON.download} すべての旅行を保存</button><button class="btn" data-action="import">${ICON.upload} ファイルを読み込む</button></div></div>
+  ${storageNotice()}
+  <div class="group">2人で同期のための設定</div>
   <div class="card"><h3>同期サーバー</h3><p class="small">2人で旅行を同期するときの、暗号化した内容の受け渡し先です(サーバーは中身を読めません)。自分で用意した https://〜.workers.dev のURLを入れます。入れるまで、このアプリは通信しません。</p>
   <input id="relayUrl" class="field" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://tabi-shiori-relay.xxxx.workers.dev" value="${esc(state.settings.relay)}" aria-label="同期サーバーのURL">
   <div class="place-actions"><button class="btn primary" data-action="save-relay">保存</button></div></div>
   <div class="card"><h3>同期リンクで参加</h3><p class="small">相手から送られたリンクを貼り付けると、その旅行がこの端末に入り、同期が始まります。</p>
   <textarea id="joinText" class="field" rows="2" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#sync=…" aria-label="同期リンク"></textarea>
-  <div class="place-actions"><button class="btn" data-action="join-paste">参加する</button></div></div>
-  ${storageNotice()}`;
+  <div class="place-actions"><button class="btn" data-action="join-paste">参加する</button></div></div>`;
 }

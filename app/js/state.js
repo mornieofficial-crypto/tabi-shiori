@@ -8,6 +8,7 @@ export const state = {
   currentId: null,
   // view: list=旅行の一覧 / trip=1つの旅行の中(下のタブ) / app=アプリの設定
   view: 'list',
+  backTo: '', // アプリの設定を開く前にいた場所(trip / list)
   tab: 'schedule',
   activeDay: 1,
   gearTab: 'list',
