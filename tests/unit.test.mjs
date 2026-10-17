@@ -178,3 +178,15 @@ test('場所の写真: 正しい小さなJPEGだけ通り、共有用には入�
   assert.equal(parseImport(serializeTrip(t, { share: true }))[0].places[0].photo, '');
   assert.equal(parseImport(serializeTrip(t))[0].places[0].photo, ok);
 });
+
+test('予約: 正規化(日にち0=未定、範囲外や不正な時刻は落とす)と書き出し', () => {
+  const t = normalizeTrip({ days: 2, bookings: [{ id: 'b1', title: '宿', day: 9, time: '25:00', memo: 'm', done: true }, { title: '', day: -3 }, 'x'] });
+  assert.equal(t.bookings.length, 3);
+  assert.equal(t.bookings[0].day, 2);
+  assert.equal(t.bookings[0].time, '');
+  assert.equal(t.bookings[0].done, true);
+  assert.equal(t.bookings[1].day, 0);
+  assert.equal(t.bookings[1].title, '(予約)');
+  assert.equal(normalizeTrip({}).bookings.length, 0);
+  assert.equal(parseImport(serializeTrip(t))[0].bookings.length, 3);
+});

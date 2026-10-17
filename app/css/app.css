@@ -253,3 +253,12 @@ body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index:
 .tripswitch { max-width: 58vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 26px; }
 .group { margin-top: 22px; }
 .card.selected { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+
+/* ---- アイコンボタン(削除・チェック)と3分割タブ ---- */
+.iconbtn.danger { color: #9d453b; }
+.iconbtn.check { font-size: 18px; font-weight: 900; color: #9aa6a0; }
+.iconbtn.check.on { background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); color: #fff; }
+.seg2 { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.bookrow { align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
+.bookrow:first-of-type { border-top: 0; }
+.bookrow .memo { -webkit-line-clamp: 3; }

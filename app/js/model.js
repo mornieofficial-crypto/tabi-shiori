@@ -8,7 +8,7 @@ import { BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.j
 export const SCHEMA = 2;
 // 夫婦2人で使う前提。2人を超える旅行データを読み込んだ場合は、削除できるようにだけしておく
 export const COUPLE = 2;
-export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, days: 30 };
+export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, bookings: 100, days: 30 };
 
 export const CATS = ['食事', 'カフェ', '観光', '宿泊', '釣り', 'お土産', '朝食', '移動', 'その他'];
 export const CAT_EMOJI = { 食事: '🍜', カフェ: '☕', 観光: '🌿', 宿泊: '♨️', 釣り: '🎣', お土産: '🎁', 朝食: '🥐', 移動: '🚗', その他: '📍' };
@@ -139,6 +139,16 @@ export function normalizeTrip(raw) {
     done: !!c?.done,
   }));
 
+  const usedB = new Set();
+  const bookings = (Array.isArray(t.bookings) ? t.bookings : []).slice(0, LIMITS.bookings).map((b) => ({
+    id: uniqueId(b?.id, usedB),
+    title: str(b?.title, 100).trim() || '(予約)',
+    day: clamp(Math.round(Number(b?.day)) || 0, 0, days), // 0 = 日にち未定
+    time: isTimeStr(b?.time) ? b.time : '',
+    memo: str(b?.memo, 500),
+    done: !!b?.done,
+  }));
+
   return {
     schema: SCHEMA,
     id: cleanId(t.id),
@@ -153,6 +163,7 @@ export function normalizeTrip(raw) {
     places,
     schedule,
     checklist,
+    bookings,
     notes: str(t.notes, 5000),
     created: typeof t.created === 'string' ? str(t.created, 40) : new Date().toISOString(),
     updated: typeof t.updated === 'string' ? str(t.updated, 40) : new Date().toISOString(),

@@ -1,6 +1,6 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
 import { renderScreen, renderHeadRight } from './views.js';
-import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, themeForm, navChooser } from './forms.js';
+import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, handleEmojiClick } from './ui.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
 import { moveProgress, dayStart } from './transit.js';
@@ -128,7 +128,7 @@ document.addEventListener('click', (e) => {
     return;
   }
   if (b.dataset.gear) {
-    state.gearTab = b.dataset.gear === 'memo' ? 'memo' : 'list';
+    state.gearTab = ['memo', 'booking'].includes(b.dataset.gear) ? b.dataset.gear : 'list';
     render();
     return;
   }
@@ -242,6 +242,20 @@ document.addEventListener('click', (e) => {
       const c = t.checklist.find((x) => x.id === id);
       if (!c) return;
       return removeWithUndo(t, `「${c.text}」`, () => (t.checklist = t.checklist.filter((x) => x.id !== id)));
+    }
+    case 'edit-booking': return bookingForm(t, id ? t.bookings.find((x) => x.id === id) : null);
+    case 'toggle-booking': {
+      const bk = t.bookings.find((x) => x.id === id);
+      if (!bk) return;
+      bk.done = !bk.done;
+      touch(t);
+      return render();
+    }
+    case 'remove-booking': {
+      const bk = t.bookings.find((x) => x.id === id);
+      if (!bk) return;
+      closeModal();
+      return removeWithUndo(t, `「${bk.title}」`, () => (t.bookings = t.bookings.filter((x) => x.id !== id)));
     }
     case 'copy-schedule': return copySchedule(t);
   }

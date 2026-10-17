@@ -10,11 +10,20 @@ const placeEmoji = (p) => p.emoji || CAT_EMOJI[p.cat] || '📍';
 // 編集はペンのアイコンだけにして、文字を減らす
 const PEN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${action}" ${id === undefined ? '' : `data-id="${esc(id)}" `}aria-label="${esc(label)}">${PEN}</button>`;
-const chip = (t) => `<span class="chip">${esc(t)}</span>`;
+const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+const trashBtn = (action, id, label) => `<button class="iconbtn danger" data-action="${action}" data-id="${esc(id)}" aria-label="${esc(label)}">${TRASH}</button>`;
+const checkBtn = (action, id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">✓</button>`;
 
 export function avatar(m) {
   const c = badgeColors(m.color);
   return `<span class="avatar" style="background:${c.bg};border-color:${c.border}">${esc(m.emoji)}</span>`;
+}
+
+// 「10/17〜10/18」のような旅行の期間(出発日が未定なら日数だけ)
+export function rangeText(t) {
+  if (!t.date) return `${t.days}日間`;
+  const f = (n) => { const [y, m, d] = t.date.split('-').map(Number); const dt = new Date(y, m - 1, d + n); return `${dt.getMonth() + 1}/${dt.getDate()}`; };
+  return t.days === 1 ? f(0) : `${f(0)}〜${f(t.days - 1)}`;
 }
 
 export function dateTitle(t, day) {
@@ -52,8 +61,8 @@ function swatches(selected, action) {
 
 function renderTripCard(t) {
   const open = t.id === state.currentId;
-  return `<div class="card ${open ? 'selected' : ''}"><div class="listrow"><span class="emoji">🗺️</span><div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')} ・ ${t.days}日間 ・ 候補${t.places.length}件</div><div class="avatars">${t.members.map(avatar).join('')}</div></div></div>
-  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く</button><button class="btn tiny danger" data-action="delete-trip" data-id="${esc(t.id)}">削除</button></div></div>`;
+  return `<div class="card ${open ? 'selected' : ''}"><div class="listrow">${t.backgroundPhoto ? `<span class="thumb" style="background-image:url('${t.backgroundPhoto}')" role="img" aria-label="旅行の写真"></span>` : '<span class="emoji">🗺️</span>'}<div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')}</div><div class="small">${esc(rangeText(t))}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div></div>
+  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く</button>${trashBtn('delete-trip', t.id, '旅行を削除')}</div></div>`;
 }
 
 // 下のタブは、旅行を開いていなくても常に表示する(ホーム・しおり・行きたい・準備・設定)
@@ -64,7 +73,7 @@ function renderNav() {
 }
 
 function tripHero(t) {
-  return `<div class="hero"><div class="eyebrow">TRAVEL ITINERARY</div><h1>${esc(t.name)}</h1><p>${esc(t.destination || '行き先を決めよう')} ・ ${t.days}日間 ${t.date ? '・ ' + esc(t.date) + ' 出発' : ''}</p><div class="flex">${chip('行きたい候補 ' + t.places.length + '件')}${chip('予定 ' + t.schedule.length + '件')}<span class="avatars heroavatars">${t.members.map(avatar).join('')}</span></div></div>`;
+  return `<div class="hero"><div class="eyebrow">TRAVEL ITINERARY</div><h1>${esc(t.name)}</h1><p>${esc(t.destination || '行き先を決めよう')} ・ ${t.days}日間 ${t.date ? '・ ' + esc(t.date) + ' 出発' : ''}</p><div class="avatars">${t.members.map(avatar).join('')}</div></div>`;
 }
 
 export function renderScreen(t) {
@@ -125,7 +134,7 @@ function renderMove(t, s, nowId) {
     <div class="track" ${live} data-id="${esc(s.id)}" aria-hidden="true"><div class="rail"></div><span class="rider ${mode.flip ? 'flip' : ''}">${esc(mode.emoji)}</span></div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
     ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-    <div class="place-actions"><button class="btn tiny" data-action="visit" data-id="${esc(s.id)}">${s.done ? '✓ 済み' : '□ 済み'}</button></div></div></div>`;
+    <div class="place-actions">${checkBtn('visit', s.id, s.done, '済み')}</div></div></div>`;
 }
 
 function renderPlaceStop(t, s, nowId) {
@@ -135,7 +144,7 @@ function renderPlaceStop(t, s, nowId) {
   ${p ? `<div class="listrow stopplace">${thumb(p)}<div class="fillspace"><div class="tripname">${esc(p.name)}</div><div class="small">📍 ${esc(p.region || p.location || 'エリア未設定')}</div></div></div>` : '<div class="small" style="margin-top:8px">候補から選択してください</div>'}
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
   ${opts.length > 1 ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<button class="rowbtn" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}"><span>${s.placeId === o.id ? '✓ ' : ''}${esc(o.name)}</span><span>${s.placeId === o.id ? '決定中' : '選ぶ →'}</span></button>`).join('')}` : ''}
-  <div class="place-actions"><button class="btn tiny" data-action="visit" data-id="${esc(s.id)}">${s.done ? '✓ 行った' : '□ 行った'}</button>${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">🚗 ナビ開始</button>` : ''}</div></div></div>`;
+  <div class="place-actions">${checkBtn('visit', s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">🚗 ナビ開始</button>` : ''}</div></div></div>`;
 }
 
 function renderPlaces(t) {
@@ -160,15 +169,24 @@ function renderPlace(t, p) {
 }
 
 function renderGear(t) {
-  const memo = state.gearTab === 'memo';
-  const seg = `<div class="seg2" role="tablist"><button role="tab" aria-selected="${!memo}" class="${memo ? '' : 'active'}" data-gear="list">✓ 持ち物</button><button role="tab" aria-selected="${memo}" class="${memo ? 'active' : ''}" data-gear="memo">📝 メモ</button></div>`;
-  if (memo) {
+  const tab = state.gearTab;
+  const seg = `<div class="seg2" role="tablist">${[['list', '✓ 持ち物'], ['booking', '🎫 予約'], ['memo', '📝 メモ']].map(([k, n]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'active' : ''}" data-gear="${k}">${n}</button>`).join('')}</div>`;
+  if (tab === 'memo') {
     return `<h2 class="title">準備とメモ</h2>${seg}
     <div class="card"><h3>旅行メモ</h3><p class="small">予約・営業時間・釣りの準備など。書いた内容はこの端末に自動保存します。</p><textarea class="field" id="tripNotes" maxlength="5000" aria-label="旅行メモ" placeholder="例：ホテルには15時までに車を預ける">${esc(t.notes)}</textarea><div class="counter" id="memoCount">${t.notes.length}/5000</div></div>`;
   }
+  if (tab === 'booking') return renderBookings(t, seg);
   const done = t.checklist.filter((c) => c.done).length;
   return `<div class="sectionactions"><h2 class="title">準備とメモ</h2><button class="btn tiny primary" data-action="new-check">＋ 追加</button></div>${seg}
-  <div class="card"><div class="spread"><h3>持ち物リスト</h3>${t.checklist.length ? `<span class="small">${done}/${t.checklist.length} 準備OK</span>` : ''}</div>${t.checklist.length ? `<div class="meter" aria-hidden="true"><i style="width:${Math.round((done / t.checklist.length) * 100)}%"></i></div>` : ''}${t.checklist.length ? t.checklist.map((c) => `<label class="check ${c.done ? 'done' : ''}"><input type="checkbox" data-action="check" data-id="${esc(c.id)}" ${c.done ? 'checked' : ''}><span class="fillspace">${esc(c.text)}</span><button class="btn tiny muted" type="button" data-action="delete-check" data-id="${esc(c.id)}">削除</button></label>`).join('') : '<p class="small">持ち物リストはまだありません。「＋ 追加」から入れてね。</p>'}</div>`;
+  <div class="card"><div class="spread"><h3>持ち物リスト</h3>${t.checklist.length ? `<span class="small">${done}/${t.checklist.length} 準備OK</span>` : ''}</div>${t.checklist.length ? `<div class="meter" aria-hidden="true"><i style="width:${Math.round((done / t.checklist.length) * 100)}%"></i></div>` : ''}${t.checklist.length ? t.checklist.map((c) => `<label class="check ${c.done ? 'done' : ''}"><input type="checkbox" data-action="check" data-id="${esc(c.id)}" ${c.done ? 'checked' : ''}><span class="fillspace">${esc(c.text)}</span>${trashBtn('delete-check', c.id, '削除')}</label>`).join('') : '<p class="small">持ち物リストはまだありません。「＋ 追加」から入れてね。</p>'}</div>`;
+}
+
+function renderBookings(t, seg) {
+  const list = [...t.bookings].sort((x, y) => (x.day || 99) - (y.day || 99) || x.time.localeCompare(y.time));
+  const done = t.bookings.filter((b) => b.done).length;
+  return `<div class="sectionactions"><h2 class="title">準備とメモ</h2><button class="btn tiny primary" data-action="edit-booking" data-id="">＋ 追加</button></div>${seg}
+  <div class="card"><div class="spread"><h3>予約</h3>${t.bookings.length ? `<span class="small">${done}/${t.bookings.length} 予約済み</span>` : ''}</div>
+  ${list.length ? list.map((b) => `<div class="listrow bookrow">${checkBtn('toggle-booking', b.id, b.done, '予約済み')}<div class="fillspace"><b>${esc(b.title)}</b><div class="small">${b.day ? esc(dateTitle(t, b.day)) : '日にち未定'}${b.time ? ' ' + esc(b.time) : ''}</div>${b.memo ? `<div class="memo">${esc(b.memo)}</div>` : ''}</div>${penBtn('edit-booking', b.id, '予約を編集')}</div>`).join('') : '<p class="small">宿・レストラン・チケットなどの予約をここにまとめられます。「＋ 追加」から入れてね。</p>'}</div>`;
 }
 
 function themeLabel(t) {

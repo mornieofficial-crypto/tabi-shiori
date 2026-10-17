@@ -240,6 +240,30 @@ export function dayPickForm(t, id) {
   );
 }
 
+export function bookingForm(t, b) {
+  const editing = !!b;
+  openModal(
+    `<form id="modalForm"><h2>${editing ? '予約を編集' : '予約を追加'}</h2><div class="formgrid">
+    ${item('名前 *', `<input class="field" name="title" required maxlength="100" value="${esc(b?.title || '')}" placeholder="例：アパホテル新潟駅前大通">`)}
+    <div class="flex"><div class="formitem grow"><label>日にち</label><select class="field" name="day"><option value="0">未定</option>${Array.from({ length: t.days }, (_, i) => `<option value="${i + 1}" ${b?.day === i + 1 ? 'selected' : ''}>${i + 1}日目</option>`).join('')}</select></div><div class="formitem grow"><label>時間</label><input class="field" type="time" name="time" value="${esc(b?.time || '')}"></div></div>
+    ${item('メモ（予約番号・連絡先など）', `<textarea class="field" name="memo" maxlength="500">${esc(b?.memo || '')}</textarea>`)}
+    </div>${actions('閉じる', '保存', editing ? `<button type="button" class="btn danger" data-action="remove-booking" data-id="${esc(b.id)}">削除</button>` : '')}</form>`,
+    (f, form) => {
+      const title = formVal(f, 'title');
+      if (!title) return err(form, '名前を入れてください');
+      if (!editing && t.bookings.length >= LIMITS.bookings) return err(form, `予約は${LIMITS.bookings}件までです`);
+      const time = formVal(f, 'time');
+      const data = { title, day: formInt(f, 'day', 0, t.days, 0), time: isTimeStr(time) ? time : '', memo: formVal(f, 'memo') };
+      if (editing) Object.assign(b, data);
+      else t.bookings.push({ id: uid(), ...data, done: false });
+      state.tab = 'gear';
+      state.gearTab = 'booking';
+      touch(t);
+      hooks.render();
+    },
+  );
+}
+
 export function checkForm(t) {
   openModal(`<form id="modalForm"><h2>持ち物・準備を追加</h2><div class="formgrid">${item('内容 *', '<input class="field" name="text" required maxlength="200" placeholder="例：モバイルバッテリー">')}</div>${actions('閉じる', '追加')}</form>`, (f, form) => {
     const text = formVal(f, 'text');
