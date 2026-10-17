@@ -93,7 +93,7 @@ export function renderScreen(t) {
 }
 
 function daytabs(t) {
-  return `<div class="daytabs">${Array.from({ length: t.days }, (_, i) => i + 1).map((d) => `<button class="${state.activeDay === d ? 'active' : ''}" data-day="${d}"><b>DAY ${d}</b>${esc(dateTitle(t, d))}</button>`).join('')}</div>`;
+  return `<div class="daytabs">${Array.from({ length: t.days }, (_, i) => i + 1).map((d) => `<button class="${state.activeDay === d ? 'active' : ''}" data-day="${d}"><b>${d}日目</b>${t.date ? esc(dateTitle(t, d)) : ''}</button>`).join('')}</div>`;
 }
 
 // 候補の一覧を開いているか。指定がなければ、場所が決まっていないときだけ開く

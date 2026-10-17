@@ -51,6 +51,15 @@ function updateNav() {
 }
 addEventListener('resize', updateNav);
 
+// 日にちのタブ: 選んでいる日が、いつも見える位置(中央)に来るようにする
+function centerDayTab() {
+  const bar = document.querySelector('.daytabs');
+  const active = bar?.querySelector('.active');
+  if (!bar || !active) return;
+  const left = active.getBoundingClientRect().left - bar.getBoundingClientRect().left + bar.scrollLeft;
+  bar.scrollLeft = left - (bar.clientWidth - active.offsetWidth) / 2;
+}
+
 function render() {
   const t = current();
   applyTheme(t);
@@ -62,6 +71,7 @@ function render() {
   $('view').innerHTML = renderScreen(t);
   updateNav();
   updateTracks();
+  centerDayTab();
 }
 hooks.render = render;
 hooks.onSaveError = () => toast('保存できませんでした。空き容量を確認してね');
