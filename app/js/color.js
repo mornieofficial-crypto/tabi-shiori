@@ -20,10 +20,15 @@ export function dayOfYear({ month, day }) {
   return n;
 }
 
+// 黄色〜黄緑(色相35°〜95°)は、くすんで見えるので使わない。色相の輪からその範囲を除いて割り当てる
+export const SKIP_HUE_FROM = 35;
+export const SKIP_HUE_LEN = 60;
+
 export function birthdayColor(s) {
   const b = parseBirthday(s);
   if (!b) return null;
-  return hslToHex(((dayOfYear(b) - 1) / 366) * 360, 58, 52);
+  const x = ((dayOfYear(b) - 1) / 366) * (360 - SKIP_HUE_LEN);
+  return hslToHex(x < SKIP_HUE_FROM ? x : x + SKIP_HUE_LEN, 58, 52);
 }
 
 export function hexToRgb(hex) {
@@ -110,5 +115,5 @@ export function badgeColors(hex) {
 export const DEFAULT_ACCENT = '#305e51';
 
 export const PRESET_COLORS = [
-  '#305e51', '#3b6ea5', '#7a5aa6', '#c0527a', '#c4533a', '#b8862b', '#5d8a3c', '#4a4a4a',
+  '#305e51', '#3b6ea5', '#7a5aa6', '#c0527a', '#c4533a', '#2b8a9d', '#5d8a3c', '#4a4a4a',
 ];

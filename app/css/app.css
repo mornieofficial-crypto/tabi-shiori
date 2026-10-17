@@ -1,6 +1,6 @@
 :root {
   --accent: #305e51; --accent-ink: #305e51; --accent-ink2: #5f8a7c; --tint: #edf3ed; --tint-line: #c6d8cc;
-  --base: #f7f6f2; --paper: #fff; --ink: #253632; --sub: #5d6c67; --line: #e7e8df; --warn: #faf0e9; --sky: #eef3f8;
+  --base: #f7f6f2; --paper: #fff; --ink: #253632; --sub: #5d6c67; --line: #e7e8df; --warn: #fdecea; --sky: #eef3f8;
   --shadow: 0 10px 24px rgba(37, 54, 50, .05);
 }
 * { box-sizing: border-box; }
@@ -107,7 +107,7 @@ textarea.field { min-height: 100px; resize: vertical; }
 }
 
 .notice { background: var(--sky); padding: 12px 14px; border-radius: 13px; color: #44596b; font-size: 12px; margin: 10px 0; }
-.notice.warn { background: var(--warn); color: #8a502f; }
+.notice.warn { background: var(--warn); color: #8f3329; }
 .empty { padding: 35px 18px; text-align: center; color: var(--sub); background: #fff; border: 1px dashed #d5ddd6; border-radius: 17px; }
 .empty strong { display: block; color: var(--ink); font-size: 15px; margin-bottom: 8px; }
 .check { display: flex; gap: 11px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: center; }
@@ -196,7 +196,7 @@ body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index:
 .cat[data-cat="宿泊"] { background: #ece6f6; color: #5d4590; }
 .cat[data-cat="釣り"] { background: #e0eefa; color: #2b5f8c; }
 .cat[data-cat="お土産"] { background: #fbe5ec; color: #99405d; }
-.cat[data-cat="朝食"] { background: #fbf0cc; color: #7d5f08; }
+.cat[data-cat="朝食"] { background: #dff1f3; color: #1f6a78; }
 .cat[data-cat="移動"], .cat[data-cat="その他"] { background: #ececec; color: #4d4d4d; }
 
 .thumb { flex: 0 0 76px; width: 76px; height: 76px; border-radius: 16px; background: var(--tint) center / cover no-repeat; display: grid; place-items: center; font-size: 26px; box-shadow: 0 4px 12px rgba(20, 40, 34, .14); }

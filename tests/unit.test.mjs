@@ -197,3 +197,14 @@ test('予定のマーク(emoji): 保存され、長すぎる値は切り詰め�
   assert.equal(Array.from(t.schedule[1].emoji).length, 8);
   assert.equal(t.schedule[2].emoji, '');
 });
+
+test('誕生日カラー: くすんだ黄色〜黄緑(色相35°〜95°)は使わない', async () => {
+  const { hexToHsl } = await import('../app/js/color.js');
+  for (let m = 1; m <= 12; m++) {
+    for (let d = 1; d <= 28; d++) {
+      const c = birthdayColor(`${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`);
+      const h = hexToHsl(c)[0];
+      assert.ok(h < 37 || h > 93, `${m}/${d} hue=${h.toFixed(1)}`);
+    }
+  }
+});
