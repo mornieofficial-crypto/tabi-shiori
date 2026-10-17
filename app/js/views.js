@@ -66,7 +66,15 @@ function renderTripCard(t) {
 }
 
 // 下のタブは、旅行を開いていなくても常に表示する(ホーム・しおり・行きたい・準備・設定)
-const TABS = [['home', '🏠', 'ホーム'], ['schedule', '🗓', 'しおり'], ['places', '♡', '行きたい'], ['gear', '✓', '準備'], ['settings', '⚙️', '設定']];
+// タブの線アイコン(絵文字ではなく、色と太さを揃えたSVG)
+const tabIcon = (paths) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
+const TABS = [
+  ['home', tabIcon('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/>'), 'ホーム'],
+  ['schedule', tabIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), 'しおり'],
+  ['places', tabIcon('<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20Z"/>'), '行きたい'],
+  ['gear', tabIcon('<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.4l2.6 2.6 5-5.4"/>'), '準備'],
+  ['settings', tabIcon('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), '設定'],
+];
 
 function renderNav() {
   return `<nav class="nav" aria-label="メインメニュー">${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}</nav>`;

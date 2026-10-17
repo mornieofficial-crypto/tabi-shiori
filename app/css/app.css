@@ -278,3 +278,13 @@ input[type="time"].field, input[type="date"].field { -webkit-appearance: none; a
 .tripcard { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; -webkit-tap-highlight-color: transparent; }
 .tripcard:active { transform: scale(.985); }
 @media (prefers-reduced-motion: reduce) { .tripcard { transition: none; } }
+
+/* ホームの注釈は、タブバーの上(画面の下)に固定する */
+body[data-tab="home"] .foot { position: fixed; left: 0; right: 0; bottom: calc(92px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(247, 246, 242, 0), var(--base) 55%); }
+body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
+
+/* タブバーの線アイコン */
+.nav .icon { width: 24px; height: 24px; margin-bottom: 2px; }
+.nav .icon svg { display: block; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.nav button.active .icon { transform: none; }
+.nav button.active .icon svg { stroke-width: 2.3; }

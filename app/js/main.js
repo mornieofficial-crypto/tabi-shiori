@@ -13,6 +13,7 @@ function render() {
   const t = current();
   applyTheme(t);
   document.body.classList.add('has-nav');
+  document.body.dataset.tab = state.tab;
   document.body.dataset.bg = t ? t.background : 'plain';
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
   $('headright').innerHTML = renderHeadRight(t);
@@ -156,9 +157,10 @@ document.addEventListener('click', (e) => {
     case 'delete-trip': {
       const target = state.trips.find((x) => x.id === id);
       if (!target) return;
+      const wasCurrent = state.currentId === id;
       removeTrip(id).then(() => {
         render();
-        toast(`「${target.name}」を削除しました`, { label: '元に戻す', fn: () => addTrip(target, { select: false }).then(render) });
+        toast(`「${target.name}」を削除しました`, { label: '元に戻す', fn: () => addTrip(target, { select: wasCurrent }).then(render) });
       });
       return;
     }
