@@ -295,10 +295,12 @@ document.addEventListener('click', (e) => {
     case 'choose': {
       const s = t.schedule.find((x) => x.id === b.dataset.slot);
       if (!s) return;
-      s.placeId = b.dataset.place;
+      // 決定中の候補をもう一度押すと、決定を解除する(候補は残る)
+      const unset = s.placeId === b.dataset.place;
+      s.placeId = unset ? '' : b.dataset.place;
       touch(t);
       render();
-      return toast('予定に反映したよ');
+      return toast(unset ? '決定を解除しました' : '予定に反映したよ');
     }
     case 'visit': {
       const s = t.schedule.find((x) => x.id === id);
