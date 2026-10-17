@@ -238,3 +238,12 @@ body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index:
 .iconbtn { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--paper); color: var(--sub); box-shadow: 0 1px 2px rgba(20, 40, 34, .06), 0 4px 10px rgba(20, 40, 34, .08); transition: transform .15s ease; -webkit-tap-highlight-color: transparent; }
 .iconbtn:active { transform: scale(.92); }
 @media (prefers-reduced-motion: reduce) { .iconbtn { transition: none; } }
+
+/* 旅行の見出し(ヒーロー): 色の大きな帯をやめて、背景になじむ控えめな見出しにする */
+.hero { background: none; color: var(--ink); padding: 2px 2px 0; margin-bottom: 6px; border-radius: 0; overflow: visible; }
+.hero::after { content: none; }
+.hero .eyebrow { color: var(--sub); }
+.hero h1 { font-size: 28px; margin: 4px 0 6px; }
+.hero p { color: var(--sub); margin-bottom: 10px; }
+.chip { border: 1px solid var(--tint-line); background: var(--tint); color: var(--accent-ink); font-weight: 700; }
+.heroavatars .avatar { border-color: var(--paper); }

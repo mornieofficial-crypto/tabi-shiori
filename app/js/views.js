@@ -30,7 +30,7 @@ export function renderHeadRight(trip) {
 
 export function renderHome() {
   const trips = state.trips;
-  return `<div class="hero"><div class="eyebrow">YOUR JOURNEY, YOUR CHOICE.</div><h1>行きたい場所から、<br>旅をつくろう。</h1><p>候補を集めて、みんなで選んで、決まったらしおりに。旅行当日の予定もここで。</p><button class="btn light" data-action="new-trip">＋ 新しい旅行を作る</button></div>
+  return `<div class="hero"><div class="eyebrow">YOUR JOURNEY, YOUR CHOICE.</div><h1>行きたい場所から、<br>旅をつくろう。</h1><p>候補を集めて、みんなで選んで、決まったらしおりに。旅行当日の予定もここで。</p><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div>
   <div class="sectionactions"><h2 class="title">あなたの旅行</h2><button class="btn tiny" data-action="import">↑ 読み込む</button></div>
   ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。</div>'}
   <div class="card"><h3>アプリの色</h3><p class="small">旅行ごとに別の色にもできます(旅行の設定から)。</p>${swatches(state.settings.accent, 'app-color')}
