@@ -1,6 +1,6 @@
 // 画面のHTMLを組み立てる(状態は変更しない)。ユーザー入力は必ず esc を通す。
 import { esc } from './util.js';
-import { CATS, CAT_EMOJI, LIMITS } from './model.js';
+import { CATS, CAT_EMOJI, COUPLE } from './model.js';
 import { state, getPlace, getMember } from './state.js';
 import { badgeColors, PRESET_COLORS } from './color.js';
 import { modeOf, stopTimes } from './transit.js';
@@ -137,7 +137,7 @@ function themeLabel(t) {
 function renderSettings(t) {
   return `<h2 class="title">旅行の設定</h2>
   <div class="card"><div class="sectionactions"><h3>基本情報</h3><button class="btn tiny" data-action="edit-trip">編集する</button></div><p>旅行名：<b>${esc(t.name)}</b></p><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
-  <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < LIMITS.members ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
+  <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < COUPLE ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
   ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div><button class="btn tiny muted" data-action="edit-member" data-id="${esc(m.id)}">編集</button></div>`).join('')}
   <p class="small">誕生日はこの端末にだけ保存します。同行者に渡すファイルには「色」だけが入ります。</p></div>
   <div class="card"><div class="sectionactions"><h3>この旅行の色</h3><button class="btn tiny" data-action="edit-theme">変える</button></div><p>${esc(themeLabel(t))}</p></div>

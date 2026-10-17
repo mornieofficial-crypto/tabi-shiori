@@ -5,6 +5,8 @@ import { isHex, parseBirthday, birthdayColor, PRESET_COLORS } from './color.js';
 import { MODES } from './transit.js';
 
 export const SCHEMA = 2;
+// 夫婦2人で使う前提。2人を超える旅行データを読み込んだ場合は、削除できるようにだけしておく
+export const COUPLE = 2;
 export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, days: 30 };
 
 export const CATS = ['食事', 'カフェ', '観光', '宿泊', '釣り', 'お土産', '朝食', '移動', 'その他'];

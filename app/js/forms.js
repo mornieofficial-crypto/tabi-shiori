@@ -1,6 +1,6 @@
 // 入力フォーム(モーダル)。保存時は model.js の正規化を通す。
 import { esc, uid, isDateStr, isTimeStr } from './util.js';
-import { CATS, LIMITS, newTrip, normalizeMember } from './model.js';
+import { CATS, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
 import { state, hooks, touch, addTrip, getPlace, getMember } from './state.js';
 import { birthdayColor, isHex } from './color.js';
 import { MODES } from './transit.js';
@@ -67,7 +67,7 @@ export function memberForm(t, m, onDelete) {
     ${item('誕生日（任意・この端末にだけ保存）', `<div class="flex"><select class="field half" name="bm" aria-label="月">${monthOpts(bd ? +bd[1] : 0)}</select><select class="field half" name="bd" aria-label="日">${dayOpts(bd ? +bd[2] : 0)}</select></div>`)}
     <label class="check inline"><input type="checkbox" name="auto" ${!m?.birthday || m.colorAuto ? 'checked' : ''}><span>誕生日から色を自動で決める</span></label>
     ${item('色', `<div class="flex"><input type="color" class="colorinput big" name="color" value="${esc(color)}" aria-label="色"><span id="colorHint" class="small"></span></div>`)}
-    </div>${actions('キャンセル', '保存', editing && t.members.length > 1 ? '<button type="button" class="btn danger" data-action="remove-member-confirm">削除</button>' : '')}</form>`,
+    </div>${actions('キャンセル', '保存', editing && t.members.length > COUPLE ? '<button type="button" class="btn danger" data-action="remove-member-confirm">削除</button>' : '')}</form>`,
     (f, form) => {
       const name = formVal(f, 'name');
       if (!name) return err(form, '名前を入れてください');
