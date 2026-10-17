@@ -1,6 +1,6 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
 import { renderScreen, renderNavInner } from './views.js';
-import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm } from './forms.js';
+import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, placeDetail } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
 import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, normalizeRelay, parseSyncLink, links } from './sync.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
@@ -358,6 +358,10 @@ document.addEventListener('click', (e) => {
       closeModal();
       return removeWithUndo(t, `「${bk.title}」`, () => (t.bookings = t.bookings.filter((x) => x.id !== id)));
     }
+    case 'place-detail': {
+      const p = getPlace(t, id);
+      return p && placeDetail(t, p);
+    }
     case 'add-genre': return genreForm(t);
     case 'delete-genre': {
       const g = t.genres.find((x) => x.id === id);
@@ -466,7 +470,7 @@ $('modalroot').addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && modalOpen()) closeModal();
   // カード(role=button)はキーボードでも開ける
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.tripcard') && e.target === document.activeElement) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.tripcard, .placemain, .stopplace[role="button"]') && e.target === document.activeElement) {
     e.preventDefault();
     e.target.click();
   }

@@ -19,6 +19,8 @@ const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true
 const trashBtn = (action, id, label) => `<button class="iconbtn danger" data-action="${action}" data-id="${esc(id)}" aria-label="${esc(label)}">${TRASH}</button>`;
 const checkBtn = (action, id, on, label) => `<button class="iconbtn check ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.check}</button>`;
 
+export { placeEmoji };
+
 export function avatar(m) {
   const c = badgeColors(m.color);
   return `<span class="avatar" style="background:${c.bg};border-color:${c.border}">${esc(m.emoji)}</span>`;
@@ -142,9 +144,9 @@ function renderPlaceStop(t, s, nowId) {
   const p = getPlace(t, s.placeId);
   const opts = s.options.map((id) => getPlace(t, id)).filter(Boolean);
   return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
-  <div class="listrow stopplace">${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? thumb(p) : '<span class="emoji">📍</span>'}<div class="fillspace">${p ? `<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div>` : `<div class="tripname muted">場所は未定</div><div class="small">${opts.length ? '下の候補から選べます' : '編集から候補を選べます'}</div>`}</div></div>
+  <div class="listrow stopplace" ${p ? `role="button" tabindex="0" data-action="place-detail" data-id="${esc(p.id)}" aria-label="${esc(p.name)}の詳細を見る"` : ''}>${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? thumb(p) : '<span class="emoji">📍</span>'}<div class="fillspace">${p ? `<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div>` : `<div class="tripname muted">場所は未定</div><div class="small">${opts.length ? '下の候補から選べます' : '編集から候補を選べます'}</div>`}</div></div>
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<button class="rowbtn" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}"><span>${s.placeId === o.id ? '✓ ' : ''}${esc(o.name)}</span><span>${s.placeId === o.id ? '決定中・もう一度押すと解除' : '選ぶ →'}</span></button>`).join('')}` : ''}
+  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}${s.placeId ? '<p class="small">決定中の候補をもう一度押すと、決定を解除できます。名前をタップすると詳細が見られます。</p>' : '<p class="small">名前をタップすると、詳細が見られます。</p>'}` : ''}
   <div class="place-actions">${checkBtn('visit', s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
 }
 
@@ -163,7 +165,7 @@ function renderPlaces(t) {
 }
 
 function renderPlace(t, p) {
-  return `<div class="card placecard"><div class="listrow">${p.photo ? thumb(p) : ''}<div class="fillspace">${catChip(p.cat, p.cat, placeEmoji(p))}<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || 'エリア未設定')}</div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
+  return `<div class="card placecard"><div class="listrow"><div class="placemain" role="button" tabindex="0" data-action="place-detail" data-id="${esc(p.id)}" aria-label="${esc(p.name)}の詳細を見る">${p.photo ? thumb(p) : ''}<div class="fillspace">${catChip(p.cat, p.cat, placeEmoji(p))}<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || 'エリア未設定')}</div></div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
   ${p.memo ? `<p class="memo">${esc(p.memo)}</p>` : ''}
   <div class="vote">${t.members.map((m) => { const on = !!p.votes[m.id]; const c = badgeColors(m.color); return `<button class="${on ? 'active' : ''}" style="${on ? `background:${c.bg};border-color:${c.border};color:${c.ink}` : ''}" data-action="vote" data-id="${esc(p.id)}" data-member="${esc(m.id)}" aria-pressed="${on}">${on ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</button>`; }).join('')}</div>
   <div class="place-actions"><button class="btn primary addbtn" data-action="add-place-to-day" data-id="${esc(p.id)}">＋ 予定に追加</button><button class="btn" data-action="nav" data-id="${esc(p.id)}" aria-label="ナビ">${ICON.navigate}</button></div></div>`;

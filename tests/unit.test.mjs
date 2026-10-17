@@ -220,3 +220,10 @@ test('ジャンルの追加: 旅行ごとに持て、場所に使え、重複・
   assert.equal(normalizeTrip({}).genres.length, 0);
   assert.equal(normalizeTrip({ places: [{ id: 'p', name: 'z', cat: '温泉' }] }).places[0].cat, 'その他');
 });
+
+test('Googleマップ: 座標があれば座標で、なければ名前+住所で開く', () => {
+  const a = navTargets({ name: 'ぽんしゅ館', location: '新潟県新潟市', lat: 37.91, lon: 139.06 });
+  assert.equal(a.google, 'https://www.google.com/maps/search/?api=1&query=37.91,139.06');
+  const b = navTargets({ name: '清水寺', location: '京都市東山区', lat: null, lon: null });
+  assert.equal(b.google, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('京都市東山区 清水寺')}`);
+});

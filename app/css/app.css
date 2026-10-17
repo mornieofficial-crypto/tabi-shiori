@@ -1,6 +1,6 @@
 :root {
   --accent: #305e51; --accent-ink: #305e51; --accent-ink2: #5f8a7c; --tint: #edf3ed; --tint-line: #c6d8cc;
-  --base: #f7f6f2; --paper: #fff; --ink: #253632; --sub: #5d6c67; --line: #e7e8df; --warn: #fdecea; --sky: #eef3f8;
+  --base: #f5f6f8; --paper: #fff; --ink: #253632; --sub: #5d6c67; --line: #e4e8ec; --warn: #fdecea; --sky: #eef3f8;
   --shadow: 0 10px 24px rgba(37, 54, 50, .05);
 }
 * { box-sizing: border-box; }
@@ -186,7 +186,7 @@ body[data-bg="dots"], body[data-bg="grid"], body[data-bg="stripes"], body[data-b
 .bgopt:has(input:focus-visible) .bgtile { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* 写真の背景: 画面に固定して全面に敷き、文字が読めるよう白のベールをかける */
-body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index: -1; background: linear-gradient(rgba(247, 246, 242, .62), rgba(247, 246, 242, .62)), var(--bg-photo) center / cover no-repeat; }
+body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index: -1; background: linear-gradient(rgba(245, 246, 248, .62), rgba(245, 246, 248, .62)), var(--bg-photo) center / cover no-repeat; }
 
 /* ---- デザイン見直し: カテゴリのタグ・写真サムネ・今の予定・ナビ開始ボタンなど ---- */
 .cat { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; background: var(--tint); color: var(--accent-ink); letter-spacing: .02em; }
@@ -347,10 +347,28 @@ body:not([data-view="list"]) .backbtn { display: inline-grid; position: fixed; t
 body:not([data-view="list"]) .header { display: none; }
 body:not([data-view="list"]) .wrap { padding-top: calc(60px + env(safe-area-inset-top)); }
 body[data-view="list"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
-body[data-view="list"] .foot, body[data-view="app"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(247, 246, 242, 0), var(--base) 55%); }
+body[data-view="list"] .foot, body[data-view="app"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(245, 246, 248, 0), var(--base) 55%); }
 body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
 
 /* ジャンルの一覧と、追加したジャンルの削除 */
 .genrelist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .cat.custom { display: inline-flex; align-items: center; gap: 4px; padding-right: 4px; }
 .chipx { border: 0; background: none; color: inherit; width: 24px; height: 24px; border-radius: 50%; font-size: 15px; line-height: 1; }
+
+/* ---- 場所の詳細・候補の選択 ---- */
+.placemain { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.stopplace[role="button"] { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.optrow { display: flex; align-items: center; gap: 8px; background: var(--tint); border-radius: 14px; padding: 3px 4px 3px 14px; margin-bottom: 6px; }
+.optname { flex: 1; min-width: 0; display: flex; justify-content: space-between; align-items: center; gap: 6px; text-align: left; background: none; border: 0; font-weight: 700; font-size: 13px; color: var(--accent-ink); padding: 10px 0; min-height: 44px; }
+.optname .chev { font-size: 20px; line-height: 1; opacity: .6; }
+.optchoose { flex: none; border: 0; border-radius: 999px; padding: 10px 16px; min-height: 40px; font-weight: 800; font-size: 12px; background: #fff; color: var(--accent-ink); box-shadow: 0 1px 2px rgba(20, 40, 34, .08), 0 4px 10px rgba(20, 40, 34, .1); }
+.optchoose.on { background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); color: #fff; }
+.detailphoto { width: 100%; aspect-ratio: 16 / 10; border-radius: 18px; background: var(--tint) center / cover no-repeat; margin: 4px 0 12px; box-shadow: 0 6px 18px rgba(20, 40, 34, .15); }
+.detailbody { display: grid; gap: 12px; margin-bottom: 4px; }
+.detailname { font-size: 20px; margin-top: -4px; }
+.detailrow .small { margin-bottom: 2px; }
+.detailmemo { white-space: pre-wrap; word-break: break-word; }
+.votepills { display: flex; gap: 6px; flex-wrap: wrap; }
+.votepill { border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; font-size: 12px; color: var(--sub); background: #fff; }
+.votepill.on { background: var(--tint); border-color: var(--tint-line); color: var(--accent-ink); font-weight: 700; }
+.detailbody .cat { justify-self: start; }

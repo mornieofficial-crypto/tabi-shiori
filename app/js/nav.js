@@ -9,6 +9,7 @@ export function navTargets(place) {
       ? `yjcarnavi://navi/select?lat=${place.lat}&lon=${place.lon}&name=${encodeURIComponent(place.name)}`
       : null,
     yahooMap: `https://map.yahoo.co.jp/search?q=${q}`,
+    google: `https://www.google.com/maps/search/?api=1&query=${hasCoords ? `${place.lat},${place.lon}` : q}`,
     apple: hasCoords
       ? `https://maps.apple.com/?ll=${place.lat},${place.lon}&q=${encodeURIComponent(place.name)}`
       : `https://maps.apple.com/?q=${q}`,

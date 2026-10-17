@@ -6,7 +6,7 @@ import { birthdayColor, isHex } from './color.js';
 import { MODES } from './transit.js';
 import { navTargets } from './nav.js';
 import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
-import { avatar } from './views.js';
+import { avatar, placeEmoji } from './views.js';
 import { ICON } from './icons.js';
 import { peekLink, joinTrip } from './sync.js';
 import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
@@ -392,11 +392,36 @@ export function themeForm(t) {
 }
 
 // ナビの選択。住所だけの場所は、位置を確認してから開く導線にする
+// 場所の詳細(行きたい・予定の候補から開く)
+export function placeDetail(t, p) {
+  const n = navTargets(p);
+  const row = (label, value) => (value ? `<div class="detailrow"><div class="small">${esc(label)}</div><div>${value}</div></div>` : '');
+  const votes = t.members.map((m) => `<span class="votepill ${p.votes[m.id] ? 'on' : ''}">${p.votes[m.id] ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</span>`).join('');
+  openModal(`<h2>${esc(p.name)}</h2>
+  ${p.photo ? `<div class="detailphoto" style="background-image:url('${p.photo}')" role="img" aria-label="${esc(p.name)}の写真"></div>` : ''}
+  <div class="detailbody">
+    <span class="cat" data-cat="${esc(p.cat)}">${esc(placeEmoji(p))} ${esc(p.cat)}</span>
+    <div class="tripname detailname">${esc(p.name)}</div>
+    ${row('エリア', esc(p.region))}
+    ${row('住所・施設名', esc(p.location))}
+    ${p.memo ? `<div class="detailrow"><div class="small">メモ</div><div class="detailmemo">${esc(p.memo)}</div></div>` : ''}
+    ${row('緯度・経度', n.hasCoords ? `${esc(p.lat)}, ${esc(p.lon)}` : '')}
+    <div class="detailrow"><div class="small">みんなの希望</div><div class="votepills">${votes}</div></div>
+  </div>
+  <div class="navlist">
+    <a class="btn primary fill" href="${esc(n.google)}" target="_blank" rel="noopener noreferrer">${ICON.map} Googleマップで開く</a>
+    <button class="btn fill" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビで開く(カーナビなど)</button>
+    <button class="btn fill" data-action="add-place-to-day" data-id="${esc(p.id)}">＋ 予定に追加</button>
+    <button class="btn fill" data-action="edit-place" data-id="${esc(p.id)}">編集する</button>
+  </div>`);
+}
+
 export function navChooser(place) {
   const n = navTargets(place);
   openModal(`<h2>ナビを開く</h2><div class="card"><b>${esc(place.name)}</b><div class="small">${esc(place.location || place.region || '住所は未登録')}</div></div>
   ${n.hasCoords ? '' : '<div class="notice warn">緯度・経度が未登録です。まず「Yahoo!マップで確認」で位置を確かめてね。</div>'}
   <div class="navlist">${n.yahooCar ? `<a class="btn primary fill" href="${esc(n.yahooCar)}">${ICON.navigate} Yahoo!カーナビで開く</a>` : ''}
+  <a class="btn fill" href="${esc(n.google)}" target="_blank" rel="noopener noreferrer">${ICON.pin} Googleマップで開く</a>
   <a class="btn fill" href="${esc(n.yahooMap)}" target="_blank" rel="noopener noreferrer">${ICON.map} Yahoo!マップで確認</a>
   <a class="btn fill" href="${esc(n.apple)}" target="_blank" rel="noopener noreferrer"> Appleマップで開く</a></div>
   <p class="small">Yahoo!カーナビのアプリが入っていないと開けません。その場合は他を選んでね。</p>
