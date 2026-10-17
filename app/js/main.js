@@ -292,6 +292,15 @@ document.addEventListener('click', (e) => {
       closeModal();
       return removeWithUndo(t, `「${bk.title}」`, () => (t.bookings = t.bookings.filter((x) => x.id !== id)));
     }
+    case 'toggle-reorder': state.reorder = !state.reorder; return render();
+    case 'move-check': {
+      const i = t.checklist.findIndex((x) => x.id === id);
+      const j = i + Number(b.dataset.dir);
+      if (i < 0 || j < 0 || j >= t.checklist.length) return;
+      [t.checklist[i], t.checklist[j]] = [t.checklist[j], t.checklist[i]];
+      touch(t);
+      return render();
+    }
     case 'copy-schedule': return copySchedule(t);
   }
 });

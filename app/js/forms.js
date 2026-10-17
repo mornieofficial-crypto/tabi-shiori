@@ -7,6 +7,7 @@ import { MODES } from './transit.js';
 import { navTargets } from './nav.js';
 import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
 import { avatar } from './views.js';
+import { ICON } from './icons.js';
 import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 const err = (form, msg) => {
@@ -116,7 +117,7 @@ export function placeForm(t, p) {
     `<form id="modalForm"><h2>${editing ? '候補を編集' : '行きたい場所を追加'}</h2><div class="formgrid">
     ${item('名前 *', `<input class="field" name="name" required maxlength="130" value="${esc(p?.name || '')}" placeholder="お店・観光スポット名">`)}
     ${item('ジャンル', `<select class="field" name="cat">${CATS.map((c) => `<option ${p?.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>`)}
-    ${item('写真（任意）', `<div class="flex"><span class="thumb big" id="placePhotoTile"></span><label class="btn tiny">📷 写真を選ぶ<input type="file" id="placePhotoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="placePhotoRemove" hidden>外す</button></div><p class="small">この端末の中だけに保存します(撮影場所の情報は取り除き、小さくして保存)。共有用のファイルには入りません。</p>`)}
+    ${item('写真（任意）', `<div class="flex"><span class="thumb big" id="placePhotoTile"></span><label class="btn tiny">${ICON.camera} 写真を選ぶ<input type="file" id="placePhotoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="placePhotoRemove" hidden>外す</button></div><p class="small">この端末の中だけに保存します(撮影場所の情報は取り除き、小さくして保存)。共有用のファイルには入りません。</p>`)}
     ${item('マーク（なしならジャンルの絵文字）', emojiField('emoji', p?.emoji || '', { allowEmpty: true, label: 'マーク' }))}
     ${item('エリア', `<input class="field" name="region" maxlength="100" value="${esc(p?.region || '')}" placeholder="例：京都市・祇園">`)}
     ${item('住所・施設名（ナビの検索に使用）', `<input class="field" name="location" maxlength="200" value="${esc(p?.location || '')}">`)}
@@ -148,7 +149,7 @@ export function placeForm(t, p) {
   const remove = form.querySelector('#placePhotoRemove');
   const showPhoto = () => {
     tile.style.backgroundImage = photo ? `url("${photo}")` : '';
-    tile.textContent = photo ? '' : '🍴';
+    tile.innerHTML = photo ? '' : ICON.camera;
     remove.hidden = !photo;
   };
   showPhoto();
@@ -178,7 +179,7 @@ export function stopForm(t, s, presetPlaceId = '') {
   const placeOpts = t.places.map((p) => `<option value="${esc(p.id)}" ${placeId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
   openModal(
     `<form id="modalForm"><h2>${editing ? '予定を編集' : `${state.activeDay}日目に予定を追加`}</h2><div class="formgrid">
-    <div class="segment" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>📍 立ち寄り・食事</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>🚗 移動</label></div>
+    <div class="segment" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>${ICON.pin} 立ち寄り・食事</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>${ICON.navigate} 移動</label></div>
     ${item('日程', `<select class="field" name="day">${Array.from({ length: t.days }, (_, i) => `<option value="${i + 1}" ${(s?.day || state.activeDay) === i + 1 ? 'selected' : ''}>${i + 1}日目</option>`).join('')}</select>`)}
     <div class="flex"><div class="formitem grow"><label>${kind === 'move' ? '出発' : '時間'} *</label><input class="field" type="time" required name="time" value="${esc(s?.time || '12:00')}"></div><div class="formitem grow" data-for="move"><label>到着</label><input class="field" type="time" name="endTime" value="${esc(s?.endTime || '')}"></div></div>
     ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : '立ち寄り'))}">`)}
@@ -289,8 +290,8 @@ export function themeForm(t) {
     ${t.members.length >= 2 ? opt('duo', `${esc(t.members[0].name)}と${esc(t.members[1].name)}の色(2色)`, th.mode === 'duo', `<span class="dot big" style="background:linear-gradient(90deg,${esc(t.members[0].color)} 50%,${esc(t.members[1].color)} 50%)"></span>`) : ''}
     ${opt('custom', '好きな色', th.mode === 'custom', `<input type="color" class="colorinput" name="hex" value="${esc(th.hex || '#3b6ea5')}" aria-label="好きな色">`)}
     <div class="group" style="margin:8px 0 0">背景</div>
-    <div class="bgpicker" role="radiogroup" aria-label="背景">${BACKGROUNDS.map((b) => `<label class="bgopt"><input type="radio" name="background" value="${b.id}" ${t.background === b.id ? 'checked' : ''}><span class="bgtile" data-bg="${b.id}"></span><span class="bglabel">${esc(b.label)}</span></label>`).join('')}<label class="bgopt"><input type="radio" name="background" value="photo" ${t.background === 'photo' ? 'checked' : ''} ${photo ? '' : 'disabled'}><span class="bgtile" id="photoTile">${photo ? '' : '📷'}</span><span class="bglabel">写真</span></label></div>
-    <div class="flex"><label class="btn tiny">📷 写真を選ぶ<input type="file" id="photoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="photoRemove" ${photo ? '' : 'hidden'}>写真を外す</button></div>
+    <div class="bgpicker" role="radiogroup" aria-label="背景">${BACKGROUNDS.map((b) => `<label class="bgopt"><input type="radio" name="background" value="${b.id}" ${t.background === b.id ? 'checked' : ''}><span class="bgtile" data-bg="${b.id}"></span><span class="bglabel">${esc(b.label)}</span></label>`).join('')}<label class="bgopt"><input type="radio" name="background" value="photo" ${t.background === 'photo' ? 'checked' : ''} ${photo ? '' : 'disabled'}><span class="bgtile" id="photoTile">${photo ? '' : ICON.camera}</span><span class="bglabel">写真</span></label></div>
+    <div class="flex"><label class="btn tiny">${ICON.camera} 写真を選ぶ<input type="file" id="photoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="photoRemove" ${photo ? '' : 'hidden'}>写真を外す</button></div>
     <p class="small">写真はこの端末の中だけに保存します。撮影場所などの情報は取り除き、小さくして保存します。共有用のファイルには入りません。</p>
     </div>${actions('キャンセル', '決定')}</form>`,
     (f) => {
@@ -315,7 +316,7 @@ export function themeForm(t) {
     tile.style.backgroundImage = photo ? `url("${photo}")` : '';
     tile.style.backgroundSize = 'cover';
     tile.style.backgroundPosition = 'center';
-    tile.textContent = photo ? '' : '📷';
+    tile.innerHTML = photo ? '' : ICON.camera;
     radio.disabled = !photo;
     remove.hidden = !photo;
   };
@@ -346,8 +347,8 @@ export function navChooser(place) {
   const n = navTargets(place);
   openModal(`<h2>ナビを開く</h2><div class="card"><b>${esc(place.name)}</b><div class="small">${esc(place.location || place.region || '住所は未登録')}</div></div>
   ${n.hasCoords ? '' : '<div class="notice warn">緯度・経度が未登録です。まず「Yahoo!マップで確認」で位置を確かめてね。</div>'}
-  <div class="navlist">${n.yahooCar ? `<a class="btn primary fill" href="${esc(n.yahooCar)}">🚗 Yahoo!カーナビで開く</a>` : ''}
-  <a class="btn fill" href="${esc(n.yahooMap)}" target="_blank" rel="noopener noreferrer">🗺️ Yahoo!マップで確認</a>
+  <div class="navlist">${n.yahooCar ? `<a class="btn primary fill" href="${esc(n.yahooCar)}">${ICON.navigate} Yahoo!カーナビで開く</a>` : ''}
+  <a class="btn fill" href="${esc(n.yahooMap)}" target="_blank" rel="noopener noreferrer">${ICON.map} Yahoo!マップで確認</a>
   <a class="btn fill" href="${esc(n.apple)}" target="_blank" rel="noopener noreferrer"> Appleマップで開く</a></div>
   <p class="small">Yahoo!カーナビのアプリが入っていないと開けません。その場合は他を選んでね。</p>
   <div class="modalactions"><button type="button" class="btn" data-action="close">閉じる</button></div>`);

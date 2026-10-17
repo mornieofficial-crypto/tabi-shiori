@@ -5,6 +5,7 @@ import { state, getPlace, getMember } from './state.js';
 import { badgeColors, PRESET_COLORS } from './color.js';
 import { modeOf, stopTimes, dayStart } from './transit.js';
 import { backgroundLabel } from './backgrounds.js';
+import { ICON } from './icons.js';
 
 const placeEmoji = (p) => p.emoji || CAT_EMOJI[p.cat] || '📍';
 // 編集はペンのアイコンだけにして、文字を減らす
@@ -41,7 +42,7 @@ export function renderHeadRight(trip) {
 // ホーム = 旅行の一覧だけ。アプリ全体の設定は「設定」タブへ
 function renderHome() {
   const trips = state.trips;
-  return `<div class="sectionactions"><h2 class="title">あなたの旅行</h2><div class="flex"><button class="btn tiny" data-action="import">↑ 読み込む</button><button class="btn tiny primary" data-action="new-trip">＋ 新しい旅行</button></div></div>
+  return `<div class="sectionactions"><h2 class="title">あなたの旅行</h2><div class="flex"><button class="btn tiny" data-action="import">${ICON.upload} 読み込む</button><button class="btn tiny primary" data-action="new-trip">＋ 新しい旅行</button></div></div>
   ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。<div style="margin-top:14px"><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div></div>'}`;
 }
 
@@ -51,8 +52,8 @@ function renderNoTrip() {
 
 function storageNotice() {
   return state.persistent
-    ? '<div class="notice">🔒 データはこの端末の中だけに保存します。別のスマホとは自動同期しません。</div>'
-    : '<div class="notice warn">⚠️ この環境では端末への保存が使えません。このまま閉じるとデータが消えるので、こまめにバックアップを書き出してください。</div>';
+    ? '<div class="notice">データはこの端末の中だけに保存します。別のスマホとは自動同期しません。</div>'
+    : '<div class="notice warn">この環境では端末への保存が使えません。このまま閉じるとデータが消えるので、こまめにバックアップを書き出してください。</div>';
 }
 
 function swatches(selected, action) {
@@ -62,7 +63,7 @@ function swatches(selected, action) {
 function renderTripCard(t) {
   const open = t.id === state.currentId;
   // カード全体をタップすると開く(ゴミ箱だけは別の操作)
-  return `<div class="card tripcard ${open ? 'selected' : ''}" role="button" tabindex="0" data-action="open-trip" data-id="${esc(t.id)}" aria-label="${esc(t.name)}を開く"><div class="listrow">${t.backgroundPhoto ? `<span class="thumb" style="background-image:url('${t.backgroundPhoto}')" role="img" aria-label="旅行の写真"></span>` : '<span class="emoji">🗺️</span>'}<div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')}</div><div class="small">${esc(rangeText(t))}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div>${trashBtn('delete-trip', t.id, '旅行を削除')}</div></div>`;
+  return `<div class="card tripcard ${open ? 'selected' : ''}" role="button" tabindex="0" data-action="open-trip" data-id="${esc(t.id)}" aria-label="${esc(t.name)}を開く"><div class="listrow">${t.backgroundPhoto ? `<span class="thumb" style="background-image:url('${t.backgroundPhoto}')" role="img" aria-label="旅行の写真"></span>` : `<span class="emoji">${ICON.map}</span>`}<div class="fillspace"><div class="tripname">${esc(t.name)} ${open ? '<span class="cat">開いている旅行</span>' : ''}</div><div class="small">${esc(t.destination || '行き先未設定')}</div><div class="small">${esc(rangeText(t))}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div>${trashBtn('delete-trip', t.id, '旅行を削除')}</div></div>`;
 }
 
 // 下のタブは、旅行を開いていなくても常に表示する(ホーム・しおり・行きたい・準備・設定)
@@ -150,10 +151,10 @@ function renderPlaceStop(t, s, nowId) {
   const p = getPlace(t, s.placeId);
   const opts = s.options.map((id) => getPlace(t, id)).filter(Boolean);
   return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
-  ${p ? `<div class="listrow stopplace">${thumb(p)}<div class="fillspace"><div class="tripname">${esc(p.name)}</div><div class="small">📍 ${esc(p.region || p.location || 'エリア未設定')}</div></div></div>` : '<div class="small" style="margin-top:8px">候補から選択してください</div>'}
+  ${p ? `<div class="listrow stopplace">${thumb(p)}<div class="fillspace"><div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div></div></div>` : '<div class="small" style="margin-top:8px">候補から選択してください</div>'}
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
   ${opts.length > 1 ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<button class="rowbtn" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}"><span>${s.placeId === o.id ? '✓ ' : ''}${esc(o.name)}</span><span>${s.placeId === o.id ? '決定中' : '選ぶ →'}</span></button>`).join('')}` : ''}
-  <div class="place-actions">${checkBtn('visit', s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">🚗 ナビ開始</button>` : ''}</div></div></div>`;
+  <div class="place-actions">${checkBtn('visit', s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
 }
 
 function renderPlaces(t) {
@@ -171,15 +172,15 @@ function renderPlaces(t) {
 }
 
 function renderPlace(t, p) {
-  return `<div class="card placecard"><div class="listrow">${thumb(p)}<div class="fillspace">${catChip(p.cat, p.cat)}<div class="tripname">${esc(p.name)}</div><div class="small">📍 ${esc(p.region || 'エリア未設定')}</div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
+  return `<div class="card placecard"><div class="listrow">${thumb(p)}<div class="fillspace">${catChip(p.cat, p.cat)}<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || 'エリア未設定')}</div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
   ${p.memo ? `<p class="memo">${esc(p.memo)}</p>` : ''}
   <div class="vote">${t.members.map((m) => { const on = !!p.votes[m.id]; const c = badgeColors(m.color); return `<button class="${on ? 'active' : ''}" style="${on ? `background:${c.bg};border-color:${c.border};color:${c.ink}` : ''}" data-action="vote" data-id="${esc(p.id)}" data-member="${esc(m.id)}" aria-pressed="${on}">${on ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</button>`; }).join('')}</div>
-  <div class="place-actions"><button class="btn primary addbtn" data-action="add-place-to-day" data-id="${esc(p.id)}">＋ 予定に追加</button><button class="btn" data-action="nav" data-id="${esc(p.id)}" aria-label="ナビ">🚗</button></div></div>`;
+  <div class="place-actions"><button class="btn primary addbtn" data-action="add-place-to-day" data-id="${esc(p.id)}">＋ 予定に追加</button><button class="btn" data-action="nav" data-id="${esc(p.id)}" aria-label="ナビ">${ICON.navigate}</button></div></div>`;
 }
 
 function renderGear(t) {
   const tab = state.gearTab;
-  const seg = `<div class="seg2" role="tablist">${[['list', '✓ 持ち物'], ['booking', '🎫 予約'], ['memo', '📝 メモ']].map(([k, n]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'active' : ''}" data-gear="${k}">${n}</button>`).join('')}</div>`;
+  const seg = `<div class="seg2" role="tablist">${[['list', '持ち物'], ['booking', '予約'], ['memo', 'メモ']].map(([k, n]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'active' : ''}" data-gear="${k}">${n}</button>`).join('')}</div>`;
   if (tab === 'memo') {
     return `<h2 class="title">準備とメモ</h2>${seg}
     <div class="card"><h3>旅行メモ</h3><p class="small">予約・営業時間・釣りの準備など。書いた内容はこの端末に自動保存します。</p><textarea class="field" id="tripNotes" maxlength="5000" aria-label="旅行メモ" placeholder="例：ホテルには15時までに車を預ける">${esc(t.notes)}</textarea><div class="counter" id="memoCount">${t.notes.length}/5000</div></div>`;
@@ -187,7 +188,7 @@ function renderGear(t) {
   if (tab === 'booking') return renderBookings(t, seg);
   const done = t.checklist.filter((c) => c.done).length;
   return `<div class="sectionactions"><h2 class="title">準備とメモ</h2><button class="btn tiny primary" data-action="new-check">＋ 追加</button></div>${seg}
-  <div class="card"><div class="spread"><h3>持ち物リスト</h3>${t.checklist.length ? `<span class="small">${done}/${t.checklist.length} 準備OK</span>` : ''}</div>${t.checklist.length ? `<div class="meter" aria-hidden="true"><i style="width:${Math.round((done / t.checklist.length) * 100)}%"></i></div>` : ''}${t.checklist.length ? t.checklist.map((c) => `<label class="check ${c.done ? 'done' : ''}"><input type="checkbox" data-action="check" data-id="${esc(c.id)}" ${c.done ? 'checked' : ''}><span class="fillspace">${esc(c.text)}</span>${trashBtn('delete-check', c.id, '削除')}</label>`).join('') : '<p class="small">持ち物リストはまだありません。「＋ 追加」から入れてね。</p>'}</div>`;
+  <div class="card"><div class="spread"><h3>持ち物リスト</h3><span class="flex">${t.checklist.length ? `<span class="small">${done}/${t.checklist.length}</span>` : ''}${t.checklist.length > 1 ? `<button class="btn tiny ${state.reorder ? 'primary' : ''}" data-action="toggle-reorder">${state.reorder ? '完了' : '並べ替え'}</button>` : ''}</span></div>${t.checklist.length ? `<div class="meter" aria-hidden="true"><i style="width:${Math.round((done / t.checklist.length) * 100)}%"></i></div>` : ''}${state.reorder ? t.checklist.map((c, i) => `<div class="check reorder"><span class="fillspace">${esc(c.text)}</span><button class="iconbtn" data-action="move-check" data-id="${esc(c.id)}" data-dir="-1" aria-label="上へ" ${i === 0 ? 'disabled' : ''}>${ICON.up}</button><button class="iconbtn" data-action="move-check" data-id="${esc(c.id)}" data-dir="1" aria-label="下へ" ${i === t.checklist.length - 1 ? 'disabled' : ''}>${ICON.down}</button></div>`).join('') : t.checklist.length ? t.checklist.map((c) => `<label class="check ${c.done ? 'done' : ''}"><input type="checkbox" data-action="check" data-id="${esc(c.id)}" ${c.done ? 'checked' : ''}><span class="fillspace">${esc(c.text)}</span>${trashBtn('delete-check', c.id, '削除')}</label>`).join('') : '<p class="small">持ち物リストはまだありません。「＋ 追加」から入れてね。</p>'}</div>`;
 }
 
 function renderBookings(t, seg) {
@@ -219,7 +220,7 @@ function tripSettings(t) {
   <p class="small">誕生日はこの端末にだけ保存します。</p></div>
   <div class="card"><div class="sectionactions"><h3>色と背景</h3>${penBtn('edit-theme', undefined, '色と背景を変える')}</div><p>色：${esc(themeLabel(t))}</p><p>背景：${esc(backgroundLabel(t.background))}</p></div>
   <div class="card"><h3>共有</h3><p class="small">共有用のファイルには、誕生日と写真が入りません。</p>
-  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">📲 AirDropなどで共有</button><button class="btn" data-action="copy-schedule">📋 しおりをコピー</button></div></div>`;
+  <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">${ICON.share} AirDropなどで共有</button><button class="btn" data-action="copy-schedule">${ICON.copy} しおりをコピー</button></div></div>`;
 }
 
 function appSettings() {
@@ -227,6 +228,6 @@ function appSettings() {
   <div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。</p>${swatches(state.settings.accent, 'app-color')}
     <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
   <div class="card"><h3>バックアップ</h3><p class="small">機種変更や故障に備えて、ときどき保存してね(誕生日・写真も含む自分用)。</p>
-  <div class="place-actions"><button class="btn" data-action="export-all">↓ すべての旅行を保存</button>${state.currentId ? `<button class="btn" data-action="export-trip" data-id="${esc(state.currentId)}">↓ この旅行だけ保存</button>` : ''}<button class="btn" data-action="import">↑ 読み込む</button></div></div>
+  <div class="place-actions"><button class="btn" data-action="export-all">${ICON.download} すべての旅行を保存</button>${state.currentId ? `<button class="btn" data-action="export-trip" data-id="${esc(state.currentId)}">${ICON.download} この旅行だけ保存</button>` : ''}<button class="btn" data-action="import">${ICON.upload} 読み込む</button></div></div>
   ${storageNotice()}`;
 }

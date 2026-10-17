@@ -1,0 +1,16 @@
+// ボタンなどに使う線アイコン(絵文字の代わり)。色は文字色(currentColor)に従う。
+const svg = (paths) =>
+  `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+export const ICON = {
+  share: svg('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 12v7h14v-7"/>'),
+  copy: svg('<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/>'),
+  download: svg('<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/>'),
+  upload: svg('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 19h14"/>'),
+  navigate: svg('<path d="M12 3l7 17-7-4-7 4Z"/>'),
+  camera: svg('<path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H8l1.2-2h5.6L16 6h1.5A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5Z"/><circle cx="12" cy="12.5" r="3.5"/>'),
+  pin: svg('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>'),
+  map: svg('<path d="M9 5 3.5 7v12L9 17l6 2 5.5-2V5L15 7Z"/><path d="M9 5v12M15 7v12"/>'),
+  up: svg('<path d="M6 14l6-6 6 6"/>'),
+  down: svg('<path d="M6 10l6 6 6-6"/>'),
+};

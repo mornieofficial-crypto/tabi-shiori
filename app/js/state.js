@@ -9,6 +9,7 @@ export const state = {
   tab: 'schedule',
   activeDay: 1,
   gearTab: 'list',
+  reorder: false,
   filter: 'すべて',
   search: '',
   persistent: true,

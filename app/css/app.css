@@ -309,3 +309,11 @@ body[data-tab="home"] .wrap { padding-bottom: calc(170px + env(safe-area-inset-b
   .navglass.flow { animation: none; }
   .nav button { transition: none; }
 }
+
+/* ---- ボタン内の線アイコン・並べ替え ---- */
+.ico { width: 1.2em; height: 1.2em; flex: none; vertical-align: -.22em; }
+.emoji .ico { width: 24px; height: 24px; color: var(--accent-ink); }
+.iconbtn .ico { width: 20px; height: 20px; vertical-align: middle; }
+.iconbtn:disabled { opacity: .35; }
+.check.reorder { padding: 8px 0; }
+.thumb .ico, #photoTile .ico, #placePhotoTile .ico { width: 26px; height: 26px; color: var(--accent-ink); }
