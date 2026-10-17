@@ -331,3 +331,12 @@ body:not([data-tab="home"]) .wrap { padding-top: calc(10px + env(safe-area-inset
 /* しおりの各予定のマークは、背景の四角なしで絵文字だけにする(写真のときは写真を表示) */
 .stopplace .emoji { background: none; box-shadow: none; flex: 0 0 40px; width: 40px; height: 40px; font-size: 30px; border-radius: 0; }
 .stopplace .emoji .ico { width: 30px; height: 30px; }
+
+/* タブバー: 高さを低くして、両端が完全な半円のカプセル型にする */
+.nav { padding: 5px; border-radius: 999px; bottom: calc(10px + env(safe-area-inset-bottom)); }
+.nav button { min-height: 46px; padding: 5px 0 4px; border-radius: 999px; }
+.nav .icon, .nav .icon svg { width: 22px; height: 22px; }
+.nav .icon { margin-bottom: 1px; }
+.navglass { top: 4px; bottom: 4px; border-radius: 999px; }
+body.has-nav #toastroot { bottom: calc(80px + env(safe-area-inset-bottom)); }
+body[data-tab="home"] .foot { bottom: calc(80px + env(safe-area-inset-bottom)); }
