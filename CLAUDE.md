@@ -1,0 +1,31 @@
+# 旅のプラン(旅のしおり)
+
+iPhone 向けの旅行計画 PWA。候補を集めて、みんなで♡を付けて選び、日別のしおりにして当日使う。
+
+## 最優先の方針
+
+- **情報漏えいリスクを極力ゼロに**:アカウントなし、サーバーに平文を置かない。Phase 1 は端末内(IndexedDB)のみで、アプリ自身は一切通信しない(CSP `connect-src 'self'`)。
+- 公開・push・deploy・有料サービスの登録は**必ず事前にユーザーへ確認**。各 Phase の終わりに報告して止まる。
+- セキュリティに影響する変更は完了報告に **Security Impact** を書き、`security/SECURITY_PROFILE.md` を更新する(規約は `C:\Work\00_AI開発共通テンプレ`、写しが `security/`)。
+- `private/`(個人の旅行の実データ)は絶対に公開・Git・ログ・`app/` に入れない。
+
+## 構成
+
+- `app/` … 公開される静的アプリ(ビルドなし、依存なし、ES Modules)。`js/` に model / state / db / views / forms / ui / io / nav / transit / color / emoji。
+- `tools/serve.mjs` … 開発サーバー(`app/` だけを配信)。`.claude/launch.json` の `tabi-app`。
+- `tests/unit.test.mjs` … `node --test tests/unit.test.mjs`。この PC には Python が無い(Node のみ)。
+- `private/docs/` … GPT 試作から引き継いだ仕様書(非公開。古い前提あり。方針は本ファイルが優先)。
+
+## 決定事項
+
+- 保存は IndexedDB。共有は JSON ファイル(共有用=誕生日なし / バックアップ用=誕生日あり)。
+- メンバーは ID で管理(投票は `votes[memberId]`)。誕生日は月日のみ・端末内のみ。色は誕生日から数式で自動提案(手動変更可)。
+- 色は `themeVars()` で文字の読みやすさ(コントラスト4.5以上)を自動調整する。
+- 移動の予定(`kind:'move'`)は出発・到着時刻から進み具合を計算して、線の上で絵文字を動かす。`prefers-reduced-motion` では動きを止める。
+- 絵文字は端末標準(iPhone なら Apple)。向きの反転は `transit.js` の `flip`。
+- 削除は確認ダイアログではなく「元に戻す」トーストで守る。
+- Service Worker は固定ファイルのみキャッシュ(旅行データは触らない)。ファイルを足したら `sw.js` の `FILES` も更新する。
+
+## 今後(Phase 2 以降)
+
+暗号化リアルタイム同期:端末側で暗号化してから中継サーバーへ。鍵は共有リンクの `#` 以降。サーバーには暗号文のみ。着手前にリスクを MEDIUM 以上で再判定し、構成と費用をユーザーに確認する。

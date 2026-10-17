@@ -1,0 +1,11 @@
+# 私的な旅行データは必ずGit管理・公開ディレクトリの対象外にする
+private/
+*.zip
+*.local.json
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.cache/
+.DS_Store

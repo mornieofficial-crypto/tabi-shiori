@@ -1,0 +1,109 @@
+import * as db from './db.js';
+import { normalizeTrip } from './model.js';
+import { isHex, themeVars, DEFAULT_ACCENT } from './color.js';
+
+export const state = {
+  trips: [],
+  settings: { accent: DEFAULT_ACCENT },
+  currentId: null,
+  tab: 'schedule',
+  activeDay: 1,
+  filter: 'すべて',
+  search: '',
+  persistent: true,
+};
+
+export const hooks = { onSaveError: () => {}, render: () => {} };
+
+export const current = () => state.trips.find((t) => t.id === state.currentId) || null;
+export const getPlace = (t, id) => t.places.find((p) => p.id === id);
+export const getMember = (t, id) => t.members.find((m) => m.id === id);
+
+const dirty = new Set();
+let timer = 0;
+
+export function touch(trip) {
+  trip.updated = new Date().toISOString();
+  dirty.add(trip.id);
+  clearTimeout(timer);
+  timer = setTimeout(flush, 200);
+}
+
+export async function flush() {
+  clearTimeout(timer);
+  const ids = [...dirty];
+  dirty.clear();
+  for (const id of ids) {
+    const trip = state.trips.find((t) => t.id === id);
+    if (!trip) continue;
+    try {
+      await db.saveTrip(trip);
+    } catch (e) {
+      hooks.onSaveError(e);
+    }
+  }
+}
+
+export async function addTrip(trip, { select = true } = {}) {
+  state.trips.unshift(trip);
+  if (select) state.currentId = trip.id;
+  await db.saveTrip(trip).catch(hooks.onSaveError);
+}
+
+export async function removeTrip(id) {
+  state.trips = state.trips.filter((t) => t.id !== id);
+  dirty.delete(id);
+  if (state.currentId === id) state.currentId = null;
+  await db.deleteTrip(id).catch(hooks.onSaveError);
+}
+
+export async function saveSettings() {
+  await db.setMeta('settings', state.settings).catch(hooks.onSaveError);
+}
+
+export function themeFor(trip) {
+  const base = state.settings.accent;
+  if (!trip) return themeVars(base);
+  const th = trip.theme || { mode: 'inherit' };
+  if (th.mode === 'member') {
+    const m = getMember(trip, th.memberId);
+    if (m) return themeVars(m.color);
+  }
+  if (th.mode === 'duo' && trip.members.length >= 2) return themeVars(trip.members[0].color, trip.members[1].color);
+  if (th.mode === 'custom' && isHex(th.hex)) return themeVars(th.hex);
+  return themeVars(base);
+}
+
+const LEGACY_KEY = 'travel-planner-general-v1';
+
+// 旧試作版(localStorage)のデータを一度だけ取り込む。元のデータは消さない。
+async function migrateLegacy() {
+  try {
+    if (await db.getMeta('legacyMigrated')) return [];
+    const raw = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null');
+    await db.setMeta('legacyMigrated', true);
+    if (!raw || !Array.isArray(raw.trips)) return [];
+    const trips = raw.trips.map(normalizeTrip);
+    for (const t of trips) await db.saveTrip(t);
+    return trips;
+  } catch {
+    return [];
+  }
+}
+
+export async function load() {
+  state.persistent = await db.init();
+  let trips = (await db.loadTrips()).map(normalizeTrip);
+  if (!trips.length) trips = await migrateLegacy();
+  trips.sort((a, b) => String(b.created).localeCompare(String(a.created)));
+  state.trips = trips;
+  const s = await db.getMeta('settings');
+  if (s && isHex(s.accent)) state.settings.accent = s.accent.toLowerCase();
+}
+
+export function applyTheme(trip) {
+  const vars = themeFor(trip);
+  const root = document.documentElement;
+  for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', vars['--tint']);
+}
