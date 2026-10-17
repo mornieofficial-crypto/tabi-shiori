@@ -372,3 +372,10 @@ body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-b
 .votepill { border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; font-size: 12px; color: var(--sub); background: #fff; }
 .votepill.on { background: var(--tint); border-color: var(--tint-line); color: var(--accent-ink); font-weight: 700; }
 .detailbody .cat { justify-self: start; }
+
+/* 候補を選ぶ: 開閉 */
+.optsummary { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: none; border: 0; padding: 4px 2px 8px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--sub); min-height: 40px; -webkit-tap-highlight-color: transparent; }
+.chevd { display: inline-grid; transition: transform .2s ease; }
+.chevd .ico { width: 18px; height: 18px; }
+.chevd.open { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .chevd { transition: none; } }

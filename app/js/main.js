@@ -1,5 +1,5 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
-import { renderScreen, renderNavInner } from './views.js';
+import { renderScreen, renderNavInner, optionsOpen } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, placeDetail } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
 import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, normalizeRelay, parseSyncLink, links } from './sync.js';
@@ -317,12 +317,19 @@ document.addEventListener('click', (e) => {
       closeModal();
       return removeWithUndo(t, `「${s.title}」`, () => (t.schedule = t.schedule.filter((x) => x.id !== id)));
     }
+    case 'toggle-options': {
+      const s = t.schedule.find((x) => x.id === id);
+      if (!s) return;
+      state.optionsOpen.set(id, !optionsOpen(s));
+      return render();
+    }
     case 'choose': {
       const s = t.schedule.find((x) => x.id === b.dataset.slot);
       if (!s) return;
       // 決定中の候補をもう一度押すと、決定を解除する(候補は残る)
       const unset = s.placeId === b.dataset.place;
       s.placeId = unset ? '' : b.dataset.place;
+      state.optionsOpen.set(s.id, unset); // 決めたら閉じる・解除したら開く
       touch(t);
       render();
       return toast(unset ? '決定を解除しました' : '予定に反映したよ');

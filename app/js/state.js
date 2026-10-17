@@ -12,6 +12,8 @@ export const state = {
   activeDay: 1,
   gearTab: 'list',
   reorder: false,
+  // 予定ごとの「候補を選ぶ」の開き具合(予定ID → 開いているか)。未指定は、決まっていなければ開く・決まっていれば閉じる
+  optionsOpen: new Map(),
   filter: 'すべて',
   search: '',
   persistent: true,
