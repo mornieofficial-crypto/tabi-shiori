@@ -233,3 +233,8 @@ body[data-bg="photo"]::before { content: ''; position: fixed; inset: 0; z-index:
 .counter { text-align: right; font-size: 11px; color: var(--sub); margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { .seg2 button, .meter i { transition: none; } }
 .stop.now .time { left: -78px; }
+
+/* 編集などの小さなアイコンボタン */
+.iconbtn { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--paper); color: var(--sub); box-shadow: 0 1px 2px rgba(20, 40, 34, .06), 0 4px 10px rgba(20, 40, 34, .08); transition: transform .15s ease; -webkit-tap-highlight-color: transparent; }
+.iconbtn:active { transform: scale(.92); }
+@media (prefers-reduced-motion: reduce) { .iconbtn { transition: none; } }

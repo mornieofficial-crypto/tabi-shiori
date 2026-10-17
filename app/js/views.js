@@ -7,6 +7,9 @@ import { modeOf, stopTimes, dayStart } from './transit.js';
 import { backgroundLabel } from './backgrounds.js';
 
 const placeEmoji = (p) => p.emoji || CAT_EMOJI[p.cat] || '📍';
+// 編集はペンのアイコンだけにして、文字を減らす
+const PEN = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${action}" ${id === undefined ? '' : `data-id="${esc(id)}" `}aria-label="${esc(label)}">${PEN}</button>`;
 const chip = (t) => `<span class="chip">${esc(t)}</span>`;
 
 export function avatar(m) {
@@ -48,7 +51,7 @@ function swatches(selected, action) {
 
 function renderTripCard(t) {
   return `<div class="card"><div class="listrow"><span class="emoji">🗺️</span><div class="fillspace"><div class="tripname">${esc(t.name)}</div><div class="small">${esc(t.destination || '行き先未設定')} ・ ${t.days}日間 ・ 候補${t.places.length}件</div><div class="avatars">${t.members.map(avatar).join('')}</div></div></div>
-  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く ↗</button><button class="btn tiny muted" data-action="export-trip" data-id="${esc(t.id)}">保存用データ</button><button class="btn tiny danger" data-action="delete-trip" data-id="${esc(t.id)}">削除</button></div></div>`;
+  <div class="place-actions"><button class="btn primary" data-action="open-trip" data-id="${esc(t.id)}">開く ↗</button><button class="btn tiny danger" data-action="delete-trip" data-id="${esc(t.id)}">削除</button></div></div>`;
 }
 
 const TABS = [['schedule', '🗓', 'しおり'], ['places', '♡', '行きたい'], ['gear', '✓', '準備'], ['settings', '⚙️', '設定']];
@@ -102,7 +105,7 @@ function renderMove(t, s, nowId) {
   const live = times ? `data-start="${times.start}" data-end="${times.end}"` : '';
   const hint = !s.endTime ? '到着時刻を入れると、時間に合わせて動きます' : !t.date ? '出発日を設定すると、当日に時間に合わせて動きます' : '';
   return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card">
-    <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span><button class="btn tiny muted" data-action="edit-stop" data-id="${esc(s.id)}" aria-label="編集">編集</button></div>
+    <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
     <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}</div>
     <div class="track" ${live} data-id="${esc(s.id)}" aria-hidden="true"><div class="rail"></div><span class="rider ${mode.flip ? 'flip' : ''}">${esc(mode.emoji)}</span></div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
@@ -113,7 +116,7 @@ function renderMove(t, s, nowId) {
 function renderPlaceStop(t, s, nowId) {
   const p = getPlace(t, s.placeId);
   const opts = s.options.map((id) => getPlace(t, id)).filter(Boolean);
-  return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span><button class="btn tiny muted" data-action="edit-stop" data-id="${esc(s.id)}" aria-label="編集">編集</button></div>
+  return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
   ${p ? `<div class="listrow stopplace">${thumb(p)}<div class="fillspace"><div class="tripname">${esc(p.name)}</div><div class="small">📍 ${esc(p.region || p.location || 'エリア未設定')}</div></div></div>` : '<div class="small" style="margin-top:8px">候補から選択してください</div>'}
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
   ${opts.length > 1 ? `<div class="divider"></div><div class="group" style="margin:3px 0 8px">候補を選ぶ</div>${opts.map((o) => `<button class="rowbtn" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}"><span>${s.placeId === o.id ? '✓ ' : ''}${esc(o.name)}</span><span>${s.placeId === o.id ? '決定中' : '選ぶ →'}</span></button>`).join('')}` : ''}
@@ -128,7 +131,6 @@ function renderPlaces(t) {
     return catOk && [p.name, p.region, p.memo, p.location].some((s) => String(s || '').toLocaleLowerCase().includes(q));
   });
   return `<div class="sectionactions"><h2 class="title">行きたい場所</h2><button class="btn tiny primary" data-action="edit-place">＋ 候補を追加</button></div>
-  <p class="small">気になる場所にそれぞれ♡を付けて比較。決まった場所はしおりへ追加できるよ。</p>
   <input id="placeSearch" class="search" placeholder="店名・エリア・メモで検索" value="${esc(state.search)}" aria-label="候補を検索">
   <div class="filters">${['すべて', ...CATS, ALL].map((c) => `<button class="${state.filter === c ? 'active' : ''}" data-filter="${esc(c)}">${esc(c)}</button>`).join('')}</div>
   <div class="small">${list.length}件の候補</div>
@@ -136,7 +138,7 @@ function renderPlaces(t) {
 }
 
 function renderPlace(t, p) {
-  return `<div class="card placecard"><div class="listrow">${thumb(p)}<div class="fillspace">${catChip(p.cat, p.cat)}<div class="tripname">${esc(p.name)}</div><div class="small">📍 ${esc(p.region || 'エリア未設定')}</div></div><button class="btn tiny muted" data-action="edit-place" data-id="${esc(p.id)}" aria-label="編集">編集</button></div>
+  return `<div class="card placecard"><div class="listrow">${thumb(p)}<div class="fillspace">${catChip(p.cat, p.cat)}<div class="tripname">${esc(p.name)}</div><div class="small">📍 ${esc(p.region || 'エリア未設定')}</div></div>${penBtn('edit-place', p.id, '候補を編集')}</div>
   ${p.memo ? `<p class="memo">${esc(p.memo)}</p>` : ''}
   <div class="vote">${t.members.map((m) => { const on = !!p.votes[m.id]; const c = badgeColors(m.color); return `<button class="${on ? 'active' : ''}" style="${on ? `background:${c.bg};border-color:${c.border};color:${c.ink}` : ''}" data-action="vote" data-id="${esc(p.id)}" data-member="${esc(m.id)}" aria-pressed="${on}">${on ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</button>`; }).join('')}</div>
   <div class="place-actions"><button class="btn primary addbtn" data-action="add-place-to-day" data-id="${esc(p.id)}">＋ 予定に追加</button><button class="btn" data-action="nav" data-id="${esc(p.id)}" aria-label="ナビ">🚗</button></div></div>`;
@@ -164,14 +166,13 @@ function themeLabel(t) {
 
 function renderSettings(t) {
   return `<h2 class="title">旅行の設定</h2>
-  <div class="card"><div class="sectionactions"><h3>基本情報</h3><button class="btn tiny" data-action="edit-trip">編集する</button></div><p>旅行名：<b>${esc(t.name)}</b></p><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
+  <div class="card"><div class="sectionactions"><h3>基本情報</h3>${penBtn('edit-trip', undefined, '旅行の基本情報を編集')}</div><p>旅行名：<b>${esc(t.name)}</b></p><p>行き先：${esc(t.destination || '未設定')}</p><p>出発日：${esc(t.date || '未定')}</p><p>日数：${t.days}日間</p></div>
   <div class="card"><div class="sectionactions"><h3>メンバー</h3>${t.members.length < COUPLE ? '<button class="btn tiny" data-action="edit-member" data-id="">＋ 追加</button>' : ''}</div>
-  ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div><button class="btn tiny muted" data-action="edit-member" data-id="${esc(m.id)}">編集</button></div>`).join('')}
+  ${t.members.map((m) => `<div class="listrow memberrow">${avatar(m)}<div class="fillspace"><b>${esc(m.name)}</b><div class="small"><span class="dot" style="background:${esc(m.color)}"></span>${m.birthday ? '誕生日から色を設定' + (m.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div>${penBtn('edit-member', m.id, `${m.name}を編集`)}</div>`).join('')}
   <p class="small">誕生日はこの端末にだけ保存します。同行者に渡すファイルには「色」だけが入ります。</p></div>
-  <div class="card"><div class="sectionactions"><h3>色と背景</h3><button class="btn tiny" data-action="edit-theme">変える</button></div><p>色：${esc(themeLabel(t))}</p><p>背景：${esc(backgroundLabel(t.background))}</p></div>
-  <div class="card"><h3>共有とバックアップ</h3><p class="small">「共有」を押すと、AirDrop・メッセージ・ファイルへの保存などを選べます。共有用のファイルには誕生日が入りません。自分用には「バックアップ用で保存」を使ってね。</p>
+  <div class="card"><div class="sectionactions"><h3>色と背景</h3>${penBtn('edit-theme', undefined, '色と背景を変える')}</div><p>色：${esc(themeLabel(t))}</p><p>背景：${esc(backgroundLabel(t.background))}</p></div>
+  <div class="card"><h3>共有とバックアップ</h3><p class="small">共有用のファイルには誕生日と写真が入りません。</p>
   <div class="place-actions"><button class="btn primary" data-action="share-trip" data-id="${esc(t.id)}">📲 AirDropなどで共有</button><button class="btn" data-action="export-trip" data-id="${esc(t.id)}">↓ バックアップ用で保存</button><button class="btn" data-action="import">↑ 読み込む</button><button class="btn" data-action="copy-schedule">📋 しおりをコピー</button></div>
   <div class="notice warn">いまは端末内だけの保存です。リアルタイムの共同編集は今後追加予定で、そのときも内容は暗号化して送る設計です。</div></div>
-  <div class="card"><h3>ナビについて</h3><p class="small">場所ごとの「ナビ」ボタンから、Yahoo!カーナビ・Yahoo!マップ・Appleマップを選べます。住所だけの場所は、先にYahoo!マップで位置を確認してから出発してね。</p></div>
   ${storageNotice()}`;
 }
