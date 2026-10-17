@@ -327,3 +327,7 @@ body:not([data-tab="home"]) .wrap { padding-top: calc(10px + env(safe-area-inset
 /* タブバーの文字: 小さく、控えめに(選択中だけ少し濃く) */
 .nav button { font-size: 9.5px; font-weight: 600; letter-spacing: .01em; color: color-mix(in srgb, var(--sub) 78%, white); }
 .nav button.active { font-weight: 700; color: var(--accent-ink); }
+
+/* しおりの各予定のマークは、背景の四角なしで絵文字だけにする(写真のときは写真を表示) */
+.stopplace .emoji { background: none; box-shadow: none; flex: 0 0 40px; width: 40px; height: 40px; font-size: 30px; border-radius: 0; }
+.stopplace .emoji .ico { width: 30px; height: 30px; }
