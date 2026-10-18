@@ -7,10 +7,37 @@ const $ = (id) => document.getElementById(id);
 let lastFocus = null;
 let submitHandler = null;
 
+// 入力画面を開いている間は、後ろのページを動かせないように固定する。
+// iPhone は、入力欄に触れると、後ろのページを動かして入力欄を見せようとするため、後ろが一番上へ戻ったように見える。
+let locked = false;
+let lockedY = 0;
+export const scrollLocked = () => locked;
+export const modalHooks = { onClosed: () => {} };
+
+function lockScroll() {
+  if (locked) return;
+  locked = true;
+  lockedY = scrollY;
+  document.body.style.top = `-${lockedY}px`;
+  document.body.classList.add('modal-open');
+}
+
+function unlockScroll() {
+  if (!locked) return;
+  locked = false;
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  const root = document.documentElement;
+  root.style.scrollBehavior = 'auto';
+  scrollTo(0, lockedY);
+  root.style.scrollBehavior = '';
+}
+
 export function openModal(html, onSubmit) {
   lastFocus = document.activeElement;
   $('modalroot').innerHTML = `<div class="modalback" id="back"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`;
   submitHandler = onSubmit || null;
+  lockScroll();
   restructureModal();
   const form = $('modalForm');
   if (form && onSubmit) {
@@ -53,6 +80,8 @@ function restructureModal() {
 export function closeModal() {
   $('modalroot').textContent = '';
   submitHandler = null;
+  unlockScroll();
+  modalHooks.onClosed();
   lastFocus?.focus?.({ preventScroll: true });
 }
 

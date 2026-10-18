@@ -455,7 +455,8 @@ body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-b
 @media (prefers-reduced-motion: reduce) { .tripswitch .chevsw { transition: none; } }
 
 /* 入力中は、下に固定した部品(注釈・タブバー)を隠す */
-body.typing .foot, body.typing #navroot { display: none !important; }
+/* 入力中は、下に固定した部品を隠す。ページの高さが変わらないよう、場所は残して見えなくする */
+body.typing .foot, body.typing .dock { visibility: hidden !important; pointer-events: none !important; }
 .fallback { margin-top: 12px; }
 .fallback summary { font-size: 12px; color: var(--sub); padding: 6px 0; cursor: pointer; }
 .fallback .field { margin-top: 6px; }
@@ -484,9 +485,12 @@ body[data-view="app"] .scope.center { margin-top: -6px; }
 .dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(10px + env(safe-area-inset-bottom)); width: min(calc(100% - 28px), 460px); display: none; gap: 8px; z-index: 20; }
 body[data-view="trip"] .dock { display: flex; }
 .dock > .nav { position: relative; left: auto; bottom: auto; transform: none; width: auto; flex: 1 1 auto; min-width: 0; display: flex !important; }
-body.typing .dock { display: none !important; }
+
 .homebar { flex: 0 0 76px; display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 5px 0 4px; font: inherit; font-size: 9.5px; font-weight: 600; color: var(--accent-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
 .homebar:active { transform: scale(.94); }
 .homebar .icon { margin-bottom: 1px; }
 @media (prefers-reduced-motion: reduce) { .homebar { transition: none; } }
 .dock > .homebar { flex: 0 0 76px; width: 76px; }
+
+/* 入力画面を開いている間は、後ろのページを固定する(位置は ui.js が覚えておいて、閉じたときに戻す) */
+body.modal-open { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
