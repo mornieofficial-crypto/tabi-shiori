@@ -347,9 +347,6 @@ body[data-view="app"] .backbtn, body[data-view="trip"][data-tab="tripsettings"] 
 body:not([data-view="list"]) .header { display: none; }
 body:not([data-view="list"]) .wrap { padding-top: calc(60px + env(safe-area-inset-top)); }
 body[data-view="trip"]:not([data-tab="tripsettings"]) .wrap { padding-top: calc(8px + env(safe-area-inset-top)); }
-body[data-view="list"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
-body[data-view="list"] .foot, body[data-view="app"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(245, 246, 248, 0), var(--base) 55%); }
-body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
 
 /* ジャンルの一覧と、追加したジャンルの削除 */
 .genrelist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -456,7 +453,7 @@ body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-b
 
 /* 入力中は、下に固定した部品(注釈・タブバー)を隠す */
 /* 入力中は、下に固定した部品を隠す。ページの高さが変わらないよう、場所は残して見えなくする */
-body.typing .foot, body.typing .dock { visibility: hidden !important; pointer-events: none !important; }
+body.typing .dock { visibility: hidden !important; pointer-events: none !important; }
 .fallback { margin-top: 12px; }
 .fallback summary { font-size: 12px; color: var(--sub); padding: 6px 0; cursor: pointer; }
 .fallback .field { margin-top: 6px; }
@@ -495,7 +492,14 @@ body[data-view="trip"] .dock { display: flex; }
 /* 入力画面を開いている間は、後ろのページを固定する(位置は ui.js が覚えておいて、閉じたときに戻す) */
 body.modal-open { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
 
-/* 注釈(旅のプラン・この端末の中に保存…)は、旅行の中でも画面の下に固定する(下のバー2つの、すぐ上) */
-body[data-view="trip"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + 60px + 4px + env(safe-area-inset-bottom)); margin: 0; padding: 14px 16px 2px; z-index: 4; pointer-events: none; font-size: 10px; line-height: 1.35; background: linear-gradient(rgba(245, 246, 248, 0), var(--base) 60%); }
-body[data-view="trip"] .wrap { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
-body[data-view="trip"] #toastroot { bottom: calc(118px + env(safe-area-inset-bottom)); }
+
+/* 注釈(旅のプラン・この端末の中に保存…)は、全ページで、いちばん最後の項目の下に置く。
+   内容が短いときは、画面の一番下まで寄る(内容に重ならない)。 */
+.wrap { min-height: 100dvh; display: flex; flex-direction: column; }
+.wrap > .foot { margin: auto 0 0; padding-top: 28px; }
+/* 一覧・アプリの設定は、下のバーがないので、下の余白は少なくてよい */
+body[data-view="list"] .wrap, body[data-view="app"] .wrap { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+/* 旅行の中は、下のバー(ホーム+3つ)の分だけ、下を空ける */
+body[data-view="trip"] .wrap { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+
+.nav .navglass.off { opacity: 0 !important; }

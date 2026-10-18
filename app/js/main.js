@@ -26,6 +26,8 @@ function updateNav() {
     } else b.removeAttribute('aria-current');
   });
   const glass = nav.querySelector('.navglass');
+  // どのタブも選ばれていないとき(旅行の設定など)は、光る丸を消す
+  glass?.classList.toggle('off', !active);
   if (!active || !glass || !active.offsetWidth) return; // 一覧・アプリ設定のときはバー自体が非表示
   if (lastView !== state.view) {
     navReady = false;
