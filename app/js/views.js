@@ -46,7 +46,13 @@ export function dateTitle(t, day) {
 function renderList() {
   const trips = state.trips;
   return `<div class="sectionactions"><h2 class="title">あなたの旅行</h2><div class="flex"><button class="btn tiny" data-action="import">${ICON.upload} 読み込む</button><button class="btn tiny primary" data-action="new-trip">＋ 新しい旅行</button></div></div>
-  ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。<div style="margin-top:14px"><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div></div>'}`;
+  ${trips.length ? trips.map(renderTripCard).join('') : '<div class="empty"><strong>旅行はまだありません</strong>最初の旅行を作るか、送られた旅行ファイルを読み込んでね。<div style="margin-top:14px"><button class="btn primary" data-action="new-trip">＋ 新しい旅行を作る</button></div></div>'}
+  <div class="card"><h3>招待された旅行に参加</h3><p class="small">相手から招待を受け取ったときは、ここから参加します。参加すると、<b>招待された1つの旅行だけ</b>が、この「旅行一覧」に追加されます(アプリの設定は、そのままです)。</p>
+  <p class="small"><b>招待ファイル</b>を受け取った場合は、上の「読み込む」で、そのファイルを選ぶだけで参加できます。リンクを受け取った場合は、リンクをコピーして、下のボタンを押してください。</p>
+  <div class="place-actions"><button class="btn primary" data-action="join-clipboard">${ICON.copy} コピーしたリンクで参加</button></div>
+  <details class="fallback"><summary>ボタンでうまくいかないとき</summary>
+  <textarea id="joinText" class="field" rows="2" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#sync=…" aria-label="同期リンク"></textarea>
+  <div class="place-actions"><button class="btn" data-action="join-paste">入力欄のリンクで参加</button></div></details></div>`;
 }
 
 function storageNotice() {
@@ -92,7 +98,7 @@ function tripTop(t) {
       <button class="menuitem" role="menuitem" data-action="go-list"><span class="fillspace"><span>しおり一覧のページへ</span></span></button>
     </div>`
     : '';
-  return `<div class="tripbarwrap"><div class="tripbar"><span class="barside" aria-hidden="true"></span><button class="tripswitch" data-action="toggle-trip-menu" aria-haspopup="menu" aria-expanded="${state.tripMenu}"><span class="tripname-text">${esc(t.name)}</span><span class="chevsw ${state.tripMenu ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button><button class="iconbtn" data-action="open-trip-settings" aria-label="旅行の設定">${ICON.gear}</button></div>${menu}</div>
+  return `<div class="tripbarwrap"><div class="tripbar"><span class="barside" aria-hidden="true"></span><button class="tripswitch" data-action="toggle-trip-menu" aria-haspopup="menu" aria-expanded="${state.tripMenu}"><span class="tripname-text">${esc(t.name)}</span><span class="chevsw ${state.tripMenu ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button><button class="iconbtn" data-action="open-trip-settings" aria-label="この旅行の設定">${ICON.sliders}</button></div>${menu}</div>
   <div class="tripinfo"><div class="infoline">${ICON.pin} ${esc(t.destination || '行き先を決めよう')}</div><div class="infoline small">${esc(rangeText(t))}${t.date ? '' : ''} ・ ${t.days}日間${t.date ? ' ・ ' + esc(t.date) + ' 出発' : ''}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div>`;
 }
 
@@ -214,7 +220,7 @@ function themeLabel(t) {
   if (th.mode === 'member') return `${getMember(t, th.memberId)?.name || ''}の色`;
   if (th.mode === 'duo') return `${t.members[0].name}と${t.members[1].name}の色`;
   if (th.mode === 'custom') return '好きな色';
-  return 'アプリ共通の色';
+  return '標準の色(アプリの設定)';
 }
 
 // 設定タブ = 「この旅行の設定」+「アプリ全体の設定」
@@ -264,7 +270,7 @@ function syncCard(t) {
 
 function appSettings() {
   return `<div class="group">見た目</div>
-  <div class="card"><h3>アプリの色</h3><p class="small">旅行で色を決めていないときの色です。旅行ごとの色は、各旅行の設定で決めます。</p>${swatches(state.settings.accent, 'app-color')}
+  <div class="card"><h3>標準の色</h3><p class="small">どの旅行にも使う、標準の色です。旅行ごとに別の色にしたいときは、その旅行の設定の「色と背景」で決めます(決めていない旅行は、この色になります)。</p>${swatches(state.settings.accent, 'app-color')}
     <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
   <div class="group">データ</div>
   <div class="card"><h3>バックアップ</h3><p class="small">すべての旅行を、1つのファイルに保存します(誕生日・写真も含む自分用)。機種変更や故障に備えて、ときどき保存してね。1つの旅行だけ保存したいときは、その旅行の設定から。</p>
@@ -274,9 +280,5 @@ function appSettings() {
   <div class="card"><div class="spread"><h3>同期サーバー</h3><span class="relaystate ${state.settings.relay ? 'ok' : ''}">${state.settings.relay ? '✓ 設定済み' : '未設定'}</span></div>${state.settings.relay ? `<p class="relayurl">${esc(state.settings.relay)}</p>` : ''}<p class="small">2人で旅行を同期するときの、暗号化した内容の受け渡し先です(サーバーは中身を読めません)。自分で用意した https://〜.workers.dev のURLを入れます(「サーバー設定ファイル」を、上の「ファイルを読み込む」で読み込んでも設定できます)。入れるまで、このアプリは通信しません。この設定は、この端末だけのもので、相手には渡りません。</p>
   <input id="relayUrl" class="field" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://tabi-shiori-relay.xxxx.workers.dev" value="${esc(state.settings.relay)}" aria-label="同期サーバーのURL">
   <div class="place-actions"><button class="btn primary" data-action="save-relay">この住所を保存</button>${state.settings.relay ? '<button class="btn" data-action="check-relay">つながるか確認</button><button class="btn danger" data-action="clear-relay">設定を外す</button>' : ''}</div><p class="small" id="relayResult" aria-live="polite"></p></div>
-  <div class="card"><h3>同期リンクで参加</h3><p class="small">参加すると、<b>招待された1つの旅行だけ</b>が、この端末の「旅行一覧」に追加されます(アプリの設定は、そのままです)。</p><p class="small"><b>招待ファイル</b>を受け取った場合は、上の「ファイルを読み込む」で、そのファイルを選ぶだけで参加できます(貼り付け不要)。リンクを受け取った場合は、リンクをコピーして、下のボタンを押してください。</p>
-  <div class="place-actions"><button class="btn primary" data-action="join-clipboard">${ICON.copy} コピーしたリンクで参加</button></div>
-  <details class="fallback"><summary>ボタンでうまくいかないとき</summary>
-  <textarea id="joinText" class="field" rows="2" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#sync=…" aria-label="同期リンク"></textarea>
-  <div class="place-actions"><button class="btn" data-action="join-paste">入力欄のリンクで参加</button></div></details></div>`;
+  `;
 }

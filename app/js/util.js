@@ -17,3 +17,7 @@ export const isDateStr = (s) => {
 };
 
 export const isTimeStr = (s) => /^([01]\d|2[0-3]):[0-5]\d$/.test(s || '');
+
+// 人の絵文字は、肌の色の指定がないと黄色になるので、明るい肌色(黒髪・白い肌のイメージ)にそろえる
+const PEOPLE = new Set(['🧑', '👩', '👨', '👧', '👦', '👶', '👵', '👴', '🚶']);
+export const lightSkin = (s) => (PEOPLE.has(s) ? s + '🏻' : s);

@@ -1,6 +1,6 @@
 // データ構造(スキーマ v2)と、外部から来たデータの検証・正規化。
 // 読み込んだデータは必ずここを通し、知らない項目は捨てる。
-import { uid, clamp, str, isDateStr, isTimeStr } from './util.js';
+import { uid, clamp, str, isDateStr, isTimeStr, lightSkin } from './util.js';
 import { isHex, parseBirthday, birthdayColor, PRESET_COLORS } from './color.js';
 import { MODES } from './transit.js';
 import { BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
@@ -41,7 +41,7 @@ export function normalizeMember(raw, i, used = new Set()) {
   return {
     id: uniqueId(m.id, used),
     name: str(m.name, 40).trim() || (i === 0 ? 'わたし' : `同行者${i}`),
-    emoji: str(m.emoji, 8) || DEFAULT_MEMBER_EMOJI[i % DEFAULT_MEMBER_EMOJI.length],
+    emoji: lightSkin(str(m.emoji, 8)) || DEFAULT_MEMBER_EMOJI[i % DEFAULT_MEMBER_EMOJI.length],
     birthday,
     color,
     colorAuto,
@@ -69,7 +69,7 @@ function normalizePlace(raw, memberIds, used, allowedCats = new Set(CATS)) {
     id: uniqueId(p.id, used),
     name: str(p.name, 130).trim() || '(名前なし)',
     cat: allowedCats.has(p.cat) ? p.cat : 'その他',
-    emoji: str(p.emoji, 8),
+    emoji: lightSkin(str(p.emoji, 8)),
     photo: isPhoto(p.photo, PLACE_PHOTO_MAX_LENGTH) ? p.photo : '',
     region: str(p.region, 100),
     location: str(p.location ?? p.address, 200),
@@ -100,7 +100,7 @@ function normalizeStop(raw, days, placeIds, used) {
     optional: !!s.optional,
     done: !!s.done,
     mode: MODE_IDS.has(s.mode) ? s.mode : 'car',
-    emoji: str(s.emoji, 8),
+    emoji: lightSkin(str(s.emoji, 8)),
   };
 }
 

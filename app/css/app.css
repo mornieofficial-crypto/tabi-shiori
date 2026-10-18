@@ -469,3 +469,24 @@ body[data-view="app"] .scope.center { margin-top: -6px; }
 .relaystate { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: #ececec; color: #5d6c67; }
 .relaystate.ok { background: var(--tint); color: var(--accent-ink); }
 .relayurl { font-size: 12px; word-break: break-all; color: var(--ink); margin: 2px 0 8px; }
+
+/* ポップアップ(入力画面・通知・背景の暗がり)にも、旅行ごとの色を反映する */
+:root { --sheet: #f5f6f8; }
+@supports (color: color-mix(in srgb, red, blue)) {
+  :root { --sheet: color-mix(in srgb, var(--tint) 38%, #ffffff); }
+  .modalback { background: color-mix(in srgb, var(--accent-ink) 38%, rgba(12, 20, 28, .7)); }
+  .toast { background: color-mix(in srgb, var(--accent-ink) 82%, #000); box-shadow: 0 7px 24px color-mix(in srgb, var(--accent-ink) 40%, transparent); }
+}
+.modal, .modalhead { background: var(--sheet); }
+.toastbtn { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- 下のタブバーを2つに分ける: 左に独立した【ホーム】、右に【予定・行きたい・準備】 ---- */
+.dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(10px + env(safe-area-inset-bottom)); width: min(calc(100% - 28px), 460px); display: none; gap: 8px; z-index: 20; }
+body[data-view="trip"] .dock { display: flex; }
+.dock > .nav { position: relative; left: auto; bottom: auto; transform: none; width: auto; flex: 1 1 auto; min-width: 0; display: flex !important; }
+body.typing .dock { display: none !important; }
+.homebar { flex: 0 0 76px; display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 5px 0 4px; font: inherit; font-size: 9.5px; font-weight: 600; color: var(--accent-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
+.homebar:active { transform: scale(.94); }
+.homebar .icon { margin-bottom: 1px; }
+@media (prefers-reduced-motion: reduce) { .homebar { transition: none; } }
+.dock > .homebar { flex: 0 0 76px; width: 76px; }

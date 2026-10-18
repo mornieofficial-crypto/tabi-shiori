@@ -8,7 +8,7 @@ export const MODES = [
   { id: 'bus', emoji: '🚌', label: 'バス', flip: true },
   { id: 'train', emoji: '🚃', label: '電車', flip: true },
   { id: 'shinkansen', emoji: '🚄', label: '新幹線', flip: true },
-  { id: 'walk', emoji: '🚶', label: '徒歩', flip: true },
+  { id: 'walk', emoji: '🚶🏻', label: '徒歩', flip: true },
   { id: 'bike', emoji: '🚲', label: '自転車', flip: true },
   { id: 'plane', emoji: '✈️', label: '飛行機', flip: false },
   { id: 'ship', emoji: '🚢', label: '船', flip: false },

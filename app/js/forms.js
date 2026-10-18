@@ -339,7 +339,7 @@ export function themeForm(t) {
   openModal(
     `<form id="modalForm"><h2>この旅行の色と背景</h2><div class="formgrid">
     <div class="group" style="margin:0">色</div>
-    ${opt('inherit', 'アプリ共通の色', th.mode === 'inherit')}
+    ${opt('inherit', '標準の色(アプリの設定の色)', th.mode === 'inherit')}
     ${t.members.map((m) => opt('m:' + m.id, `${avatar(m)} ${esc(m.name)}の色`, th.mode === 'member' && th.memberId === m.id, `<span class="dot big" style="background:${esc(m.color)}"></span>`)).join('')}
     ${t.members.length >= 2 ? opt('duo', `${esc(t.members[0].name)}と${esc(t.members[1].name)}の色(2色)`, th.mode === 'duo', `<span class="dot big" style="background:linear-gradient(90deg,${esc(t.members[0].color)} 50%,${esc(t.members[1].color)} 50%)"></span>`) : ''}
     ${opt('custom', '好きな色', th.mode === 'custom', `<input type="color" class="colorinput" name="hex" value="${esc(th.hex || '#3b6ea5')}" aria-label="好きな色">`)}
