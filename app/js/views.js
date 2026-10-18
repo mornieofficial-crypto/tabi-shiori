@@ -137,7 +137,7 @@ function renderMove(t, s, nowId) {
   const times = s.endTime ? stopTimes(t.date, s.day, s.time, s.endTime) : null;
   const live = times ? `data-start="${times.start}" data-end="${times.end}"` : '';
   const hint = !s.endTime ? '到着時刻を入れると、時間に合わせて動きます' : !t.date ? '出発日を設定すると、当日に時間に合わせて動きます' : '';
-  return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
+  return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-stop="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
     <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
     <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}</div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
@@ -148,7 +148,7 @@ function renderMove(t, s, nowId) {
 function renderPlaceStop(t, s, nowId) {
   const p = getPlace(t, s.placeId);
   const opts = s.options.map((id) => getPlace(t, id)).filter(Boolean);
-  return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
+  return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" data-stop="${esc(s.id)}"><div class="time">${esc(s.time)}</div><div class="card"><div class="spread">${catChip(s.title, p?.cat)}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
   <div class="listrow stopplace" ${p ? `role="button" tabindex="0" data-action="place-detail" data-id="${esc(p.id)}" aria-label="${esc(p.name)}の詳細を見る"` : ''}>${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? thumb(p) : '<span class="emoji">📍</span>'}<div class="fillspace">${p ? `<div class="tripname">${esc(p.name)}</div><div class="small">${ICON.pin} ${esc(p.region || p.location || 'エリア未設定')}</div>` : `<div class="tripname muted">場所は未定</div><div class="small">${opts.length ? '下の候補から選べます' : '編集から候補を選べます'}</div>`}</div></div>
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
   ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><button class="optsummary" data-action="toggle-options" data-id="${esc(s.id)}" aria-expanded="${optionsOpen(s)}"><span>候補を選ぶ(${opts.length})</span><span class="chevd ${optionsOpen(s) ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button>${!optionsOpen(s) ? '' : opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}` : ''}

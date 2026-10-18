@@ -13,6 +13,7 @@ export const state = {
   activeDay: 1,
   gearTab: 'list',
   reorder: false,
+  focusStop: '', // 描き直したあとに、画面の中央へ出したい予定のID(編集・追加した予定)
   // 予定ごとの「候補を選ぶ」の開き具合(予定ID → 開いているか)。未指定は、決まっていなければ開く・決まっていれば閉じる
   optionsOpen: new Map(),
   filter: 'すべて',

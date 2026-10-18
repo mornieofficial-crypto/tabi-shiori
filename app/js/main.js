@@ -60,7 +60,20 @@ function centerDayTab() {
   bar.scrollLeft = left - (bar.clientWidth - active.offsetWidth) / 2;
 }
 
+// 画面を描き直すと、いったん中身が空になって、スクロールが一番上に戻ってしまう。
+// 同じ画面(同じタブ・同じ日)の描き直しでは、元の位置に戻す。
+let lastSig = '';
+const jumpTo = (y) => {
+  const root = document.documentElement;
+  root.style.scrollBehavior = 'auto'; // なめらかなスクロールだと、一度上に戻る様子が見えてしまう
+  scrollTo(0, y);
+  root.style.scrollBehavior = '';
+};
+
 function render() {
+  const sig = [state.view, state.tab, state.activeDay, state.currentId, state.gearTab].join('|');
+  const keepY = sig === lastSig ? scrollY : null;
+  lastSig = sig;
   const t = current();
   applyTheme(t);
   if (!t && state.view === 'trip') state.view = 'list';
@@ -72,6 +85,16 @@ function render() {
   updateNav();
   updateTracks();
   centerDayTab();
+  if (keepY !== null) jumpTo(keepY);
+  // 編集・追加した予定が見える位置へ(時刻を変えて並びが変わっても、その予定のところへ戻る)
+  if (state.focusStop) {
+    const el = document.querySelector(`[data-stop="${CSS.escape(state.focusStop)}"]`);
+    state.focusStop = '';
+    if (el) {
+      const r = el.getBoundingClientRect();
+      jumpTo(scrollY + r.top - innerHeight / 3);
+    }
+  }
 }
 hooks.render = render;
 hooks.onSaveError = () => toast('保存できませんでした。空き容量を確認してね');

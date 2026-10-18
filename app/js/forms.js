@@ -202,11 +202,14 @@ export function stopForm(t, s, presetPlaceId = '') {
       const pid = k === 'stop' && getPlace(t, formVal(f, 'placeId')) ? formVal(f, 'placeId') : '';
       const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k === 'stop' ? formVal(f, 'emoji') : '' };
       if (editing) {
+        state.focusStop = s.id;
         Object.assign(s, obj);
         s.options = k === 'stop' ? s.options.filter((id) => getPlace(t, id)) : [];
         if (pid && !s.options.includes(pid)) s.options.push(pid);
       } else {
-        t.schedule.push({ id: uid(), ...obj, options: pid ? [pid] : [], done: false });
+        const newId = uid();
+        state.focusStop = newId;
+        t.schedule.push({ id: newId, ...obj, options: pid ? [pid] : [], done: false });
       }
       state.activeDay = obj.day;
       state.tab = 'schedule';
@@ -236,7 +239,9 @@ export function dayPickForm(t, id) {
     ${item('時間', '<input class="field" name="time" type="time" value="12:00">')}</div>${actions('閉じる', '追加する')}</form>`,
     (f) => {
       const day = formInt(f, 'day', 1, t.days, 1);
-      t.schedule.push({ id: uid(), kind: 'stop', day, time: isTimeStr(formVal(f, 'time')) ? formVal(f, 'time') : '12:00', endTime: '', title: p.cat === '食事' ? '食事' : p.cat === 'カフェ' ? 'カフェ休憩' : p.cat === '宿泊' ? '宿泊' : '立ち寄り', placeId: id, options: [id], note: '', optional: false, done: false, mode: 'car' });
+      const sid = uid();
+      state.focusStop = sid;
+      t.schedule.push({ id: sid, kind: 'stop', day, time: isTimeStr(formVal(f, 'time')) ? formVal(f, 'time') : '12:00', endTime: '', title: p.cat === '食事' ? '食事' : p.cat === 'カフェ' ? 'カフェ休憩' : p.cat === '宿泊' ? '宿泊' : '立ち寄り', placeId: id, options: [id], note: '', optional: false, done: false, mode: 'car' });
       state.activeDay = day;
       state.tab = 'schedule';
       touch(t);
