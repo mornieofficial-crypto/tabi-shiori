@@ -100,6 +100,26 @@ export function linkUrl(trip) {
   return `${location.origin}${location.pathname}#sync=${payload}`;
 }
 
+// 招待ファイル(貼り付けなしで参加できる)。中身は、リンクと同じ情報なので、相手以外には渡さない。
+export function inviteFile(trip) {
+  const l = links.get(trip.id);
+  const text = JSON.stringify({ type: 'travel-planner-sync-invite', v: 1, t: trip.id, k: l.k, r: l.r }, null, 2);
+  return { name: 'tabi-sync-invite.json', text };
+}
+
+// 読み込んだファイルの中身が「招待ファイル」「サーバー設定ファイル」なら、検査して返す
+export function parseInviteData(data) {
+  if (data?.type === 'travel-planner-sync-invite') {
+    if (data.v !== 1 || !/^[\w.-]{1,64}$/.test(data.t) || !isKey(data.k) || !normalizeRelay(data.r)) return { kind: 'invalid' };
+    return { kind: 'invite', link: { t: data.t, k: data.k, r: normalizeRelay(data.r) } };
+  }
+  if (data?.type === 'travel-planner-relay') {
+    const relay = normalizeRelay(data.relay);
+    return relay ? { kind: 'relay', relay } : { kind: 'invalid' };
+  }
+  return null;
+}
+
 // 貼り付けられた文章やURLから、同期リンクを取り出す
 export function parseSyncLink(text) {
   const m = /#sync=([A-Za-z0-9_-]+)/.exec(String(text));

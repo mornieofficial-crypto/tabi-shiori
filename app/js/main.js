@@ -2,7 +2,7 @@ import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTri
 import { renderScreen, renderNavInner, optionsOpen } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, placeDetail } from './forms.js';
 import { closeModal, modalOpen, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
-import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, normalizeRelay, parseSyncLink, links } from './sync.js';
+import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, inviteFile, parseInviteData, normalizeRelay, parseSyncLink, links } from './sync.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
 import { moveProgress, dayStart } from './transit.js';
 import { isHex } from './color.js';
@@ -206,7 +206,23 @@ async function importFile(file) {
   if (!file) return;
   if (file.size > MAX_IMPORT_BYTES) return toast('ファイルが大きすぎます');
   try {
-    const trips = parseImport(await file.text());
+    const text = await file.text();
+    // 同期の招待ファイル / サーバー設定ファイルは、旅行ファイルとは別に扱う
+    let special = null;
+    try {
+      special = parseInviteData(JSON.parse(text));
+    } catch {
+      special = null;
+    }
+    if (special?.kind === 'invalid') return toast('このファイルは、読み込めませんでした(内容が正しくありません)');
+    if (special?.kind === 'relay') {
+      state.settings.relay = special.relay;
+      saveSettings();
+      render();
+      return toast('同期サーバーを設定しました');
+    }
+    if (special?.kind === 'invite') return syncJoinForm(special.link);
+    const trips = parseImport(text);
     for (const t of trips) await addTrip(t, { select: trips.length === 1 });
     state.tab = 'schedule';
     state.view = trips.length === 1 ? 'trip' : 'list';
@@ -276,19 +292,35 @@ document.addEventListener('click', (e) => {
     case 'open-trip-settings': state.tab = 'tripsettings'; render(); return scrollTo(0, 0);
     case 'leave-trip-settings': state.tab = 'schedule'; render(); return scrollTo(0, 0);
     case 'save-relay': {
+      // 空のまま保存しても、設定は外れない(外すのは「設定を外す」だけ)
       const v = $('relayUrl').value.trim();
-      if (!v) {
-        state.settings.relay = '';
-        saveSettings();
-        toast('同期サーバーを外しました');
-        return render();
-      }
+      if (!v) return toast('住所を入れてから、保存してください');
       const r = normalizeRelay(v);
       if (!r) return toast('https://〜.workers.dev の形で入れてください');
       state.settings.relay = r;
       saveSettings();
-      toast('保存しました');
-      return render();
+      render();
+      return toast('✓ 保存しました');
+    }
+    case 'clear-relay':
+      return confirmForm('同期サーバーを外す', 'この端末の、同期サーバーの設定を外します。同期中の旅行は、あとで設定し直すまで、同期されなくなります。', '外す', () => {
+        state.settings.relay = '';
+        saveSettings();
+        render();
+        toast('同期サーバーの設定を外しました');
+      });
+    case 'check-relay': {
+      const out = $('relayResult');
+      out.textContent = '確かめています…';
+      fetch(`${state.settings.relay}/v1/room/${'0'.repeat(32)}`, { cache: 'no-store' })
+        .then((res) => res.json())
+        .then((j) => {
+          out.textContent = Number.isInteger(j.rev) ? '✓ つながりました。同期サーバーは使えます。' : '✗ つながりましたが、同期サーバーの応答ではありません。';
+        })
+        .catch(() => {
+          out.textContent = '✗ つながりません。住所が違うか、通信できない状態です。';
+        });
+      return;
     }
     case 'join-clipboard': {
       // クリップボードは、ボタンを押した直後でないと読めない(iPhone は、初回に「ペースト」の確認が出る)
@@ -474,6 +506,18 @@ document.addEventListener('click', (e) => {
       shareLinkText(linkUrl(t), `旅のプラン「${t.name}」の同期リンク`).then((r) => {
         if (r === 'copied') toast('リンクをコピーしました。相手に送ってね');
         else if (r === 'failed') toast('リンクを共有できませんでした');
+      });
+      return;
+    }
+    case 'sync-invite': {
+      if (!links.has(t.id)) return;
+      const inv = inviteFile(t);
+      // 共有シートはボタンを押した直後に開く必要がある。使えなければ、ファイルとして保存する
+      shareFile(inv.name, inv.text, `旅のプラン「${t.name}」の同期の招待`).then((r) => {
+        if (r === 'unsupported') {
+          download(inv.name, inv.text);
+          toast('招待ファイルを保存したよ。相手に送ってね');
+        }
       });
       return;
     }

@@ -464,3 +464,8 @@ body.typing .foot, body.typing #navroot { display: none !important; }
 .title.center, .scope.center { text-align: center; }
 body[data-view="app"] .title.center { margin-top: -46px; margin-bottom: 20px; line-height: 42px; }
 body[data-view="app"] .scope.center { margin-top: -6px; }
+
+/* 同期サーバーの状態(設定済みか、未設定か)を、いつも見えるようにする */
+.relaystate { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: #ececec; color: #5d6c67; }
+.relaystate.ok { background: var(--tint); color: var(--accent-ink); }
+.relayurl { font-size: 12px; word-break: break-all; color: var(--ink); margin: 2px 0 8px; }

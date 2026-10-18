@@ -253,7 +253,7 @@ function syncCard(t) {
     const time = l.last ? new Date(l.last).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '';
     const status = l.status === 'syncing' ? '同期しています…' : l.status === 'error' ? `うまくいきませんでした:${l.error}` : time ? `最後に同期:${time}` : '準備ができました';
     return `<div class="card"><div class="spread"><h3>2人で同期</h3><span class="cat">同期中</span></div><p class="small">${esc(status)}</p>
-    <div class="place-actions"><button class="btn primary" data-action="sync-share">${ICON.share} リンクを送る</button><button class="btn" data-action="sync-now">今すぐ同期</button><button class="btn danger" data-action="sync-stop">やめる</button></div>
+    <div class="place-actions"><button class="btn primary" data-action="sync-invite">${ICON.share} 招待ファイルを送る</button><button class="btn" data-action="sync-share">リンクを送る</button><button class="btn" data-action="sync-now">今すぐ同期</button><button class="btn danger" data-action="sync-stop">やめる</button></div>
     <p class="small">内容は暗号化して送ります。リンクを知っている人は、この旅行を読み書きできるので、相手以外には渡さないでね。</p></div>`;
   }
   if (!state.settings.relay) {
@@ -271,10 +271,10 @@ function appSettings() {
   <div class="place-actions"><button class="btn" data-action="export-all">${ICON.download} すべての旅行を保存</button><button class="btn" data-action="import">${ICON.upload} ファイルを読み込む</button></div></div>
   ${storageNotice()}
   <div class="group">2人で同期のための設定</div>
-  <div class="card"><h3>同期サーバー</h3><p class="small">2人で旅行を同期するときの、暗号化した内容の受け渡し先です(サーバーは中身を読めません)。自分で用意した https://〜.workers.dev のURLを入れます。入れるまで、このアプリは通信しません。</p>
+  <div class="card"><div class="spread"><h3>同期サーバー</h3><span class="relaystate ${state.settings.relay ? 'ok' : ''}">${state.settings.relay ? '✓ 設定済み' : '未設定'}</span></div>${state.settings.relay ? `<p class="relayurl">${esc(state.settings.relay)}</p>` : ''}<p class="small">2人で旅行を同期するときの、暗号化した内容の受け渡し先です(サーバーは中身を読めません)。自分で用意した https://〜.workers.dev のURLを入れます(「サーバー設定ファイル」を、上の「ファイルを読み込む」で読み込んでも設定できます)。入れるまで、このアプリは通信しません。</p>
   <input id="relayUrl" class="field" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://tabi-shiori-relay.xxxx.workers.dev" value="${esc(state.settings.relay)}" aria-label="同期サーバーのURL">
-  <div class="place-actions"><button class="btn primary" data-action="save-relay">保存</button></div></div>
-  <div class="card"><h3>同期リンクで参加</h3><p class="small">相手から送られたリンクを、メッセージの中で長押しして「コピー」してから、下のボタンを押してください。その旅行がこの端末に入り、同期が始まります。</p>
+  <div class="place-actions"><button class="btn primary" data-action="save-relay">この住所を保存</button>${state.settings.relay ? '<button class="btn" data-action="check-relay">つながるか確認</button><button class="btn danger" data-action="clear-relay">設定を外す</button>' : ''}</div><p class="small" id="relayResult" aria-live="polite"></p></div>
+  <div class="card"><h3>同期リンクで参加</h3><p class="small"><b>招待ファイル</b>を受け取った場合は、上の「ファイルを読み込む」で、そのファイルを選ぶだけで参加できます(貼り付け不要)。リンクを受け取った場合は、リンクをコピーして、下のボタンを押してください。</p>
   <div class="place-actions"><button class="btn primary" data-action="join-clipboard">${ICON.copy} コピーしたリンクで参加</button></div>
   <details class="fallback"><summary>ボタンでうまくいかないとき</summary>
   <textarea id="joinText" class="field" rows="2" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#sync=…" aria-label="同期リンク"></textarea>
