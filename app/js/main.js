@@ -255,7 +255,9 @@ function copySchedule(t) {
 document.addEventListener('click', (e) => {
   if (handleEmojiClick(e.target)) return;
   const b = e.target.closest('[data-action],[data-tab],[data-day],[data-filter],[data-gear]');
-  if (!b) return;
+  // body にも data-tab(今のタブ名)が付いているので、ボタン以外をタップしたときに、body を押したことにしない
+  // (しないと、入力欄や文字をタップするだけで、画面が描き直されて、一番上へ戻ってしまう)
+  if (!b || b === document.body) return;
   if (b.dataset.tab) {
     state.tripMenu = false;
     state.tab = b.dataset.tab;
