@@ -227,3 +227,27 @@ test('Googleマップ: 座標があれば座標で、なければ名前+住所�
   const b = navTargets({ name: '清水寺', location: '京都市東山区', lat: null, lon: null });
   assert.equal(b.google, `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('京都市東山区 清水寺')}`);
 });
+
+test('クリック処理: body の data-tab を、ボタンと取り違えない(入力欄のタップで画面が上に戻る不具合の再発防止)', () => {
+  const src = readFileSync(join(root, 'app', 'js', 'main.js'), 'utf8');
+  assert.match(src, /b === document\.body/);
+});
+
+test('人の絵文字は、明るい肌色にそろえる(黄色い肌にしない)', async () => {
+  const { lightSkin } = await import('../app/js/util.js');
+  const { modeOf } = await import('../app/js/transit.js');
+  assert.equal(lightSkin('🧑'), '🧑🏻');
+  assert.equal(lightSkin('🚶'), '🚶🏻');
+  assert.equal(lightSkin('🧑🏻'), '🧑🏻', '指定済みはそのまま');
+  assert.equal(lightSkin('🐻'), '🐻', '人以外はそのまま');
+  assert.equal(modeOf('walk').emoji, '🚶🏻');
+  const t = normalizeTrip({ members: [{ name: 'A', emoji: '👩' }, { name: 'B', emoji: '🐰' }] });
+  assert.equal(t.members[0].emoji, '👩🏻');
+  assert.equal(t.members[1].emoji, '🐰');
+});
+
+test('下のタブバーは2つ: 左に独立したホーム、右に旅行の中のタブ', () => {
+  const html = readFileSync(join(root, 'app', 'index.html'), 'utf8');
+  assert.match(html, /id="homebtn"[^>]*data-action="go-list"/);
+  assert.match(html, /<div class="dock">[\s\S]*id="homebtn"[\s\S]*id="navroot"/, 'ホームが、旅行内のタブの左にある');
+});

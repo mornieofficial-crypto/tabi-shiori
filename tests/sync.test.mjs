@@ -154,3 +154,17 @@ test('中継サーバー: 合言葉が違う書き込みは拒否、古い版へ
     assert.equal((await fetch(`${relay}/v1/room/zzzz`)).status, 404);
   });
 });
+
+test('招待ファイル・サーバー設定ファイル: 正しいものだけ受け付ける', async () => {
+  const { parseInviteData } = await import('../app/js/sync.js');
+  const k = newKey();
+  const ok = parseInviteData({ type: 'travel-planner-sync-invite', v: 1, t: 'trip-1', k, r: 'https://relay.example.workers.dev/' });
+  assert.equal(ok.kind, 'invite');
+  assert.deepEqual(ok.link, { t: 'trip-1', k, r: 'https://relay.example.workers.dev' });
+  assert.equal(parseInviteData({ type: 'travel-planner-sync-invite', v: 1, t: 'x', k: 'short', r: 'https://a.workers.dev' }).kind, 'invalid');
+  assert.equal(parseInviteData({ type: 'travel-planner-sync-invite', v: 1, t: 'x', k, r: 'https://evil.example.com' }).kind, 'invalid', '許可していないサーバーは弾く');
+  assert.equal(parseInviteData({ type: 'travel-planner-sync-invite', v: 1, t: '../x', k, r: 'https://a.workers.dev' }).kind, 'invalid');
+  assert.deepEqual(parseInviteData({ type: 'travel-planner-relay', relay: 'https://a.workers.dev' }), { kind: 'relay', relay: 'https://a.workers.dev' });
+  assert.equal(parseInviteData({ type: 'travel-planner-relay', relay: 'http://a.workers.dev' }).kind, 'invalid');
+  assert.equal(parseInviteData({ type: 'travel-planner-trip' }), null);
+});
