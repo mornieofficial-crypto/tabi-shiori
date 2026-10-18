@@ -290,6 +290,19 @@ document.addEventListener('click', (e) => {
       toast('保存しました');
       return render();
     }
+    case 'join-clipboard': {
+      // クリップボードは、ボタンを押した直後でないと読めない(iPhone は、初回に「ペースト」の確認が出る)
+      if (!navigator.clipboard?.readText) return toast('この端末では、このボタンが使えません。下の入力欄に貼り付けてね');
+      navigator.clipboard
+        .readText()
+        .then((text) => {
+          const j = parseSyncLink(text);
+          if (!j) return toast('コピーしたリンクが見つかりません。メッセージのリンクを長押ししてコピーしてね');
+          syncJoinForm(j);
+        })
+        .catch(() => toast('貼り付けが許可されませんでした。もう一度ボタンを押して、「ペースト」を選んでね'));
+      return;
+    }
     case 'join-paste': {
       const j = parseSyncLink($('joinText').value);
       if (!j) return toast('同期リンクを読み取れませんでした');
@@ -526,6 +539,17 @@ document.addEventListener('input', (e) => {
     next.setSelectionRange(pos, pos);
     scrollTo(0, y);
   }
+});
+
+// 入力欄に触れている間(キーボードが出ている間)は、下に固定した部品を隠す。
+// iPhone は、キーボードが出ると、下に固定した部品を押し上げて、画面が動いたように見えるため。
+document.addEventListener('focusin', (e) => {
+  if (e.target.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]), textarea, select')) document.body.classList.add('typing');
+});
+document.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (!document.activeElement?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]), textarea, select')) document.body.classList.remove('typing');
+  }, 50);
 });
 
 $('modalroot').addEventListener('click', (e) => {

@@ -274,7 +274,9 @@ function appSettings() {
   <div class="card"><h3>同期サーバー</h3><p class="small">2人で旅行を同期するときの、暗号化した内容の受け渡し先です(サーバーは中身を読めません)。自分で用意した https://〜.workers.dev のURLを入れます。入れるまで、このアプリは通信しません。</p>
   <input id="relayUrl" class="field" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://tabi-shiori-relay.xxxx.workers.dev" value="${esc(state.settings.relay)}" aria-label="同期サーバーのURL">
   <div class="place-actions"><button class="btn primary" data-action="save-relay">保存</button></div></div>
-  <div class="card"><h3>同期リンクで参加</h3><p class="small">相手から送られたリンクを貼り付けると、その旅行がこの端末に入り、同期が始まります。</p>
+  <div class="card"><h3>同期リンクで参加</h3><p class="small">相手から送られたリンクを、メッセージの中で長押しして「コピー」してから、下のボタンを押してください。その旅行がこの端末に入り、同期が始まります。</p>
+  <div class="place-actions"><button class="btn primary" data-action="join-clipboard">${ICON.copy} コピーしたリンクで参加</button></div>
+  <details class="fallback"><summary>ボタンでうまくいかないとき</summary>
   <textarea id="joinText" class="field" rows="2" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://…#sync=…" aria-label="同期リンク"></textarea>
-  <div class="place-actions"><button class="btn" data-action="join-paste">参加する</button></div></div>`;
+  <div class="place-actions"><button class="btn" data-action="join-paste">入力欄のリンクで参加</button></div></details></div>`;
 }
