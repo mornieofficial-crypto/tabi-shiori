@@ -182,13 +182,13 @@ export function normalizeTrip(raw) {
   };
 }
 
-export function newTrip({ name, destination, date, days, memberNames }) {
+export function newTrip({ name, destination, date, days, memberNames = [], members }) {
   return normalizeTrip({
     id: uid(),
     name,
     destination,
     date,
     days,
-    members: memberNames.map((n) => ({ name: n })),
+    members: members ?? memberNames.map((n) => ({ name: n })),
   });
 }

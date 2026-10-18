@@ -1,7 +1,7 @@
 // 入力フォーム(モーダル)。保存時は model.js の正規化を通す。
 import { esc, uid, isDateStr, isTimeStr } from './util.js';
 import { CATS, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
-import { state, hooks, touch, addTrip, getPlace, getMember } from './state.js';
+import { state, hooks, touch, addTrip, getPlace, getMember, saveSettings } from './state.js';
 import { birthdayColor, isHex } from './color.js';
 import { MODES } from './transit.js';
 import { navTargets } from './nav.js';
@@ -27,6 +27,7 @@ const item = (label, inner, id = '') => `<div class="formitem"><label ${id ? `fo
 
 export function tripForm(t) {
   const editing = !!t;
+  const prof = state.settings.profile;
   const person = (i, v) => item(`参加者${i + 1}`, `<input class="field" name="p${i}" maxlength="40" value="${esc(v)}">`);
   openModal(
     `<form id="modalForm"><h2>${editing ? '旅行を編集' : '新しい旅行を作る'}</h2><div class="formgrid">
@@ -34,7 +35,7 @@ export function tripForm(t) {
     ${item('行き先', `<input class="field" name="destination" maxlength="100" value="${esc(t?.destination || '')}" placeholder="例：京都・宇治">`)}
     ${item('出発日（未定でもOK）', `<input class="field" type="date" name="date" value="${esc(t?.date || '')}">`)}
     ${item('何日間？', `<input class="field" type="number" name="days" min="1" max="${LIMITS.days}" value="${t?.days || 3}">`)}
-    ${editing ? '' : person(0, 'わたし') + person(1, '同行者')}
+    ${editing ? '' : person(0, prof[0]?.name || 'わたし') + person(1, prof[1]?.name || '同行者')}
     </div>${actions(editing ? 'キャンセル' : 'キャンセル', editing ? '保存' : '旅行を作る')}</form>`,
     (f, form) => {
       const name = formVal(f, 'name');
@@ -48,7 +49,13 @@ export function tripForm(t) {
         if (state.activeDay > days) state.activeDay = days;
         touch(t);
       } else {
-        const trip = newTrip({ name, destination: formVal(f, 'destination'), date, days, memberNames: [formVal(f, 'p0') || 'わたし', formVal(f, 'p1') || '同行者'] });
+        const trip = newTrip({ name, destination: formVal(f, 'destination'), date, days, members: [0, 1].map((i) => {
+          // ふたりのプロフィールがあれば、アイコン・誕生日・色も引き継ぐ(名前は、この画面で変えた内容を優先)
+          const p = prof[i];
+          const base = p ? { emoji: p.emoji, birthday: p.birthday, color: p.color, colorAuto: p.colorAuto } : {};
+          return { ...base, name: formVal(f, 'p' + i) || p?.name || (i === 0 ? 'わたし' : '同行者') };
+        }),
+      });
         state.tab = 'schedule';
         state.view = 'trip';
         state.activeDay = 1;
@@ -62,18 +69,20 @@ export function tripForm(t) {
 const monthOpts = (sel) => `<option value="">--</option>${Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}" ${sel === i + 1 ? 'selected' : ''}>${i + 1}月</option>`).join('')}`;
 const dayOpts = (sel) => `<option value="">--</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${sel === i + 1 ? 'selected' : ''}>${i + 1}日</option>`).join('')}`;
 
-export function memberForm(t, m, onDelete) {
+export function memberForm(t, m, onDelete, opts = {}) {
+  const profileIndex = opts.profile; // 数字ならプロフィールの編集(旅行ではなく、アプリの設定に保存する)
+  const isProfile = Number.isInteger(profileIndex);
   const editing = !!m;
   const bd = /^(\d{2})-(\d{2})$/.exec(m?.birthday || '');
   const color = m?.color || '#3b6ea5';
   openModal(
-    `<form id="modalForm"><h2>${editing ? 'メンバーを編集' : 'メンバーを追加'}</h2><div class="formgrid">
+    `<form id="modalForm"><h2>${isProfile ? `ふたりのプロフィール(${profileIndex + 1}人目)` : editing ? 'メンバーを編集' : 'メンバーを追加'}</h2><div class="formgrid">
     ${item('名前 *', `<input class="field" name="name" required maxlength="40" value="${esc(m?.name || '')}">`)}
     ${item('アイコン', emojiField('emoji', m?.emoji || '🐻', { label: 'アイコン' }))}
     ${item('誕生日（任意・この端末にだけ保存）', `<div class="flex"><select class="field half" name="bm" aria-label="月">${monthOpts(bd ? +bd[1] : 0)}</select><select class="field half" name="bd" aria-label="日">${dayOpts(bd ? +bd[2] : 0)}</select></div>`)}
     <label class="check inline"><input type="checkbox" name="auto" ${!m?.birthday || m.colorAuto ? 'checked' : ''}><span>誕生日から色を自動で決める</span></label>
     ${item('色', `<div class="flex"><input type="color" class="colorinput big" name="color" value="${esc(color)}" aria-label="色"><span id="colorHint" class="small"></span></div>`)}
-    </div>${actions('キャンセル', '保存', editing && t.members.length > COUPLE ? '<button type="button" class="btn danger" data-action="remove-member-confirm">削除</button>' : '')}</form>`,
+    </div>${actions('キャンセル', '保存', !isProfile && editing && t.members.length > COUPLE ? '<button type="button" class="btn danger" data-action="remove-member-confirm">削除</button>' : '')}</form>`,
     (f, form) => {
       const name = formVal(f, 'name');
       if (!name) return err(form, '名前を入れてください');
@@ -85,6 +94,17 @@ export function memberForm(t, m, onDelete) {
       const auto = !!f.get('auto') && !!birthday;
       const raw = { id: m?.id, name, emoji: formVal(f, 'emoji'), birthday, colorAuto: auto, color: formVal(f, 'color') };
       if (!auto && !isHex(raw.color)) return err(form, '色が正しくありません');
+      if (isProfile) {
+        const next = normalizeMember({ ...raw, id: 'profile' + profileIndex }, profileIndex);
+        const list = [...state.settings.profile];
+        // 1人目だけ決めた場合は、2人目に、初期の名前を入れておく
+        while (list.length < profileIndex) list.push(normalizeMember({ id: 'profile' + list.length }, list.length));
+        list[profileIndex] = next;
+        state.settings.profile = list;
+        saveSettings();
+        hooks.render();
+        return;
+      }
       const used = new Set(t.members.filter((x) => x !== m).map((x) => x.id));
       const next = normalizeMember(raw, editing ? t.members.indexOf(m) : t.members.length, used);
       if (editing) Object.assign(m, next);

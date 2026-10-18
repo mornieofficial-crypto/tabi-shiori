@@ -1,10 +1,11 @@
 import * as db from './db.js';
-import { normalizeTrip } from './model.js';
+import { normalizeTrip, normalizeMember } from './model.js';
 import { isHex, themeVars, DEFAULT_ACCENT } from './color.js';
 
 export const state = {
   trips: [],
-  settings: { accent: DEFAULT_ACCENT, relay: '' },
+  // profile: ふたりのプロフィール(名前・アイコン・誕生日・色)。新しい旅行を作るときに、メンバーとして入る
+  settings: { accent: DEFAULT_ACCENT, relay: '', profile: [] },
   currentId: null,
   // view: list=旅行の一覧 / trip=1つの旅行の中(下のタブ) / app=アプリの設定
   view: 'list',
@@ -125,6 +126,7 @@ export async function load() {
   const s = await db.getMeta('settings');
   if (s && isHex(s.accent)) state.settings.accent = s.accent.toLowerCase();
   if (s && typeof s.relay === 'string') state.settings.relay = s.relay;
+  if (Array.isArray(s?.profile)) state.settings.profile = s.profile.slice(0, 2).map((p, i) => normalizeMember({ ...p, id: 'profile' + i }, i));
 }
 
 export function applyTheme(trip) {

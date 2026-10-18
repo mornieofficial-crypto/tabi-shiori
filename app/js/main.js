@@ -294,6 +294,10 @@ document.addEventListener('click', (e) => {
     case 'close-trip-menu': return;
     case 'open-trip-settings': state.tab = 'tripsettings'; render(); return scrollTo(0, 0);
     case 'leave-trip-settings': state.tab = 'schedule'; render(); return scrollTo(0, 0);
+    case 'edit-profile': {
+      const i = Number(b.dataset.id) === 1 ? 1 : 0;
+      return memberForm(null, state.settings.profile[i] || null, null, { profile: i });
+    }
     case 'save-relay': {
       // 空のまま保存しても、設定は外れない(外すのは「設定を外す」だけ)
       const v = $('relayUrl').value.trim();

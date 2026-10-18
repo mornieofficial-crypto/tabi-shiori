@@ -268,8 +268,18 @@ function syncCard(t) {
   return `<div class="card"><h3>2人で同期</h3><p class="small"><b>この旅行だけ</b>を、相手のスマホと同じ内容にそろえます。他の旅行や、アプリの設定は共有されません。内容は暗号化して送るので、サーバーには読めません(誕生日と写真は送りません)。</p><div class="place-actions"><button class="btn primary" data-action="sync-start">同期を始める</button></div></div>`;
 }
 
+function profileRow(i) {
+  const p = state.settings.profile[i];
+  const label = i === 0 ? '1人目' : '2人目';
+  if (!p) return `<div class="listrow memberrow"><span class="avatar" style="background:#eef1f4;border-color:#dde2e7">?</span><div class="fillspace"><b class="muted">${label}(まだ決めていません)</b><div class="small">名前・アイコン・誕生日・色</div></div>${penBtn('edit-profile', String(i), `${label}のプロフィールを決める`)}</div>`;
+  return `<div class="listrow memberrow">${avatar(p)}<div class="fillspace"><b>${esc(p.name)}</b><div class="small"><span class="dot" style="background:${esc(p.color)}"></span>${p.birthday ? '誕生日から色を設定' + (p.colorAuto ? '' : '(手動)') : '色を手動で設定'}</div></div>${penBtn('edit-profile', String(i), `${esc(p.name)}のプロフィールを編集`)}</div>`;
+}
+
 function appSettings() {
-  return `<div class="group">見た目</div>
+  return `<div class="group">ふたり</div>
+  <div class="card"><h3>ふたりのプロフィール</h3>${profileRow(0)}${profileRow(1)}
+  <p class="small">新しい旅行を作るときに、このふたりが、自動でメンバーに入ります(名前・アイコン・誕生日・色)。すでにある旅行は、そのままです。旅行ごとに変えたいときは、その旅行の設定で。誕生日は、この端末にだけ保存します。</p></div>
+  <div class="group">見た目</div>
   <div class="card"><h3>標準の色</h3><p class="small">どの旅行にも使う、標準の色です。旅行ごとに別の色にしたいときは、その旅行の設定の「色と背景」で決めます(決めていない旅行は、この色になります)。</p>${swatches(state.settings.accent, 'app-color')}
     <div class="place-actions"><label class="btn tiny">好きな色 <input type="color" class="colorinput" data-action-input="app-color-custom" value="${esc(state.settings.accent)}" aria-label="好きな色を選ぶ"></label></div></div>
   <div class="group">データ</div>

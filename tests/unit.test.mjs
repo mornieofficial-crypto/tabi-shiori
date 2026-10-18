@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { birthdayColor, parseBirthday, dayOfYear, contrast, ensureContrast, themeVars, isHex } from '../app/js/color.js';
 import { moveProgress, stopTimes, dayStart } from '../app/js/transit.js';
-import { normalizeTrip, newTrip } from '../app/js/model.js';
+import { normalizeTrip, newTrip, normalizeMember } from '../app/js/model.js';
 import { parseImport, serializeTrip, serializeBackup, ImportError } from '../app/js/io.js';
 import { navTargets } from '../app/js/nav.js';
 import { esc, str } from '../app/js/util.js';
@@ -250,4 +250,15 @@ test('下のタブバーは2つ: 左に独立したホーム、右に旅行の�
   const html = readFileSync(join(root, 'app', 'index.html'), 'utf8');
   assert.match(html, /id="homebtn"[^>]*data-action="go-list"/);
   assert.match(html, /<div class="dock">[\s\S]*id="homebtn"[\s\S]*id="navroot"/, 'ホームが、旅行内のタブの左にある');
+});
+
+test('ふたりのプロフィールから新しい旅行を作る: アイコン・誕生日・色を引き継ぎ、旅行ごとのIDは新しくなる', () => {
+  const profile = [normalizeMember({ id: 'profile0', name: '香文', emoji: '👩', birthday: '03-15' }, 0), normalizeMember({ id: 'profile1', name: '隼人', emoji: '🐰', color: '#3b6ea5' }, 1)];
+  const t = newTrip({ name: '京都', destination: '', date: '', days: 2, members: profile.map((p) => ({ emoji: p.emoji, birthday: p.birthday, color: p.color, colorAuto: p.colorAuto, name: p.name })) });
+  assert.deepEqual(t.members.map((m) => m.name), ['香文', '隼人']);
+  assert.equal(t.members[0].emoji, '👩🏻');
+  assert.equal(t.members[0].birthday, '03-15');
+  assert.equal(t.members[0].color, profile[0].color);
+  assert.notEqual(t.members[0].id, 'profile0');
+  assert.equal(t.members[1].color, '#3b6ea5');
 });
