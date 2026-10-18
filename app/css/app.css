@@ -494,3 +494,8 @@ body[data-view="trip"] .dock { display: flex; }
 
 /* 入力画面を開いている間は、後ろのページを固定する(位置は ui.js が覚えておいて、閉じたときに戻す) */
 body.modal-open { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
+
+/* 注釈(旅のプラン・この端末の中に保存…)は、旅行の中でも画面の下に固定する(下のバー2つの、すぐ上) */
+body[data-view="trip"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + 60px + 4px + env(safe-area-inset-bottom)); margin: 0; padding: 14px 16px 2px; z-index: 4; pointer-events: none; font-size: 10px; line-height: 1.35; background: linear-gradient(rgba(245, 246, 248, 0), var(--base) 60%); }
+body[data-view="trip"] .wrap { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+body[data-view="trip"] #toastroot { bottom: calc(118px + env(safe-area-inset-bottom)); }
