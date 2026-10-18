@@ -459,3 +459,8 @@ body.typing .foot, body.typing #navroot { display: none !important; }
 .fallback { margin-top: 12px; }
 .fallback summary { font-size: 12px; color: var(--sub); padding: 6px 0; cursor: pointer; }
 .fallback .field { margin-top: 6px; }
+
+/* アプリの設定のタイトルは中央に(左上の戻るボタンと、同じ高さに並ぶ) */
+.title.center, .scope.center { text-align: center; }
+body[data-view="app"] .title.center { margin-top: -46px; margin-bottom: 20px; line-height: 42px; }
+body[data-view="app"] .scope.center { margin-top: -6px; }

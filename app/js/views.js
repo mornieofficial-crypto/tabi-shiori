@@ -226,7 +226,7 @@ function renderTripSettings(t) {
 }
 
 function renderAppPage() {
-  return `<h2 class="title">アプリの設定</h2><p class="scope">すべての旅行に共通の設定です。</p>${appSettings()}`;
+  return `<h2 class="title center">アプリの設定</h2><p class="scope center">すべての旅行に共通の設定です。</p>${appSettings()}`;
 }
 
 function tripSettings(t) {
