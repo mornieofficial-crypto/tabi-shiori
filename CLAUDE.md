@@ -36,6 +36,6 @@ iPhone 向けの旅行計画 PWA。候補を集めて、みんなで♡を付け
 - 仕組み:旅行ごとに鍵(256ビット)を作り、共有リンクの `#sync=…` に入れる(サーバーに届かない)。鍵から「部屋の名前」「書き込み合言葉」「暗号鍵」を別々に作る(`syncCrypto.js`)。内容は AES-GCM で暗号化して中継サーバーに置く。
 - まとめ方:前回同期した状態(base)・手元・相手の3者比較(`merge.js`)。別々の項目の変更は両方残り、同じ項目は新しいほう、消した項目は変えていないときだけ消える。誕生日と写真は端末の外に出さず、相手の内容でも消えない。
 - 通信は `syncCore.js`(fetch を差し込める)。画面側は `sync.js`(リンクの保存・10秒ごとの同期・参加)。**同期サーバーのURLを設定し、旅行を同期するまで、アプリは通信しない。** CSP は `connect-src 'self' https://*.workers.dev`。
-- 中継サーバー:`relay/worker.js`(Cloudflare・未デプロイ・実環境では未確認)、お手本 `relay/node-relay.mjs`(テスト用)。デプロイ手順は `relay/README.md`。デプロイと登録は、利用者(あなた)の操作が必要。
+- 中継サーバー:`relay/handler.js`(Cloudflare Workers + **D1**。おかいものメモと同じ構成・同じアカウント `mornie.official`)、入口 `relay/worker.js`、お手本 `relay/node-relay.mjs`。デプロイ手順は `relay/README.md`。デプロイは、利用者(あなた)の操作が必要。実際の Cloudflare 上では未確認(`tests/relay.test.mjs` は SQLite で D1 の代わりを作って確認)。半年使われない部屋は自動削除。
 - iPhone では Safari とホーム画面のアプリで保存場所が別。リンクをメッセージから開くと Safari に入るので、ホーム画面のアプリには「アプリの設定 → 同期リンクで参加」に貼り付ける。
-- テスト:`node --test tests/`(unit・sync)。
+- テスト:`node --test tests/unit.test.mjs tests/sync.test.mjs tests/relay.test.mjs`(Node 24)。

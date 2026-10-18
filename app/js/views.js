@@ -72,7 +72,6 @@ const TABS = [
   ['schedule', tabIcon('<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'), '予定'],
   ['places', tabIcon('<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20Z"/>'), '行きたい'],
   ['gear', tabIcon('<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.4l2.6 2.6 5-5.4"/>'), '準備'],
-  ['tripsettings', tabIcon('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>'), '旅行設定'],
 ];
 
 // 下のタブ。画面を描き直しても残る要素(#navroot)に一度だけ入れ、選択の丸い「ガラス」を滑らせる
@@ -80,8 +79,21 @@ export function renderNavInner() {
   return `<span class="navglass" aria-hidden="true"></span>${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}`;
 }
 
-function tripHero(t) {
-  return `<div class="hero"><div class="eyebrow">TRAVEL ITINERARY</div><h1>${esc(t.name)}</h1><p>${esc(t.destination || '行き先を決めよう')} ・ ${t.days}日間 ${t.date ? '・ ' + esc(t.date) + ' 出発' : ''}</p><div class="avatars">${t.members.map(avatar).join('')}</div></div>`;
+// 旅行の中の上部: 左上は空け、中央にしおり名(右に▾で切り替え)、右上に旅行の設定。
+// その下に、題名以外の情報(行き先・期間・メンバー)をまとめる
+function tripTop(t) {
+  const menu = state.tripMenu
+    ? `<button class="menuback" data-action="close-trip-menu" aria-label="閉じる"></button>
+    <div class="tripmenu" role="menu" aria-label="しおりを切り替える">
+      <div class="menuhead">しおり一覧</div>
+      ${state.trips.map((x) => `<button class="menuitem ${x.id === t.id ? 'current' : ''}" role="menuitem" data-action="open-trip" data-id="${esc(x.id)}"><span class="fillspace"><b>${esc(x.name)}</b><span class="small">${esc(x.destination || '行き先未設定')} ・ ${esc(rangeText(x))}</span></span>${x.id === t.id ? ICON.check : ''}</button>`).join('')}
+      <div class="menuline"></div>
+      <button class="menuitem add" role="menuitem" data-action="new-trip"><span class="fillspace"><b>＋ 新しいしおりを追加</b></span></button>
+      <button class="menuitem" role="menuitem" data-action="go-list"><span class="fillspace"><span>しおり一覧のページへ</span></span></button>
+    </div>`
+    : '';
+  return `<div class="tripbarwrap"><div class="tripbar"><span class="barside" aria-hidden="true"></span><button class="tripswitch" data-action="toggle-trip-menu" aria-haspopup="menu" aria-expanded="${state.tripMenu}"><span class="tripname-text">${esc(t.name)}</span><span class="chevsw ${state.tripMenu ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button><button class="iconbtn" data-action="open-trip-settings" aria-label="旅行の設定">${ICON.gear}</button></div>${menu}</div>
+  <div class="tripinfo"><div class="infoline">${ICON.pin} ${esc(t.destination || '行き先を決めよう')}</div><div class="infoline small">${esc(rangeText(t))}${t.date ? '' : ''} ・ ${t.days}日間${t.date ? ' ・ ' + esc(t.date) + ' 出発' : ''}</div><div class="avatars">${t.members.map(avatar).join('')}</div></div>`;
 }
 
 export function renderScreen(t) {
@@ -89,7 +101,7 @@ export function renderScreen(t) {
   if (state.view === 'list' || !t) return renderList();
   const tab = state.tab;
   if (tab === 'tripsettings') return renderTripSettings(t);
-  return tripHero(t) + { schedule: renderSchedule, places: renderPlaces, gear: renderGear }[tab](t);
+  return tripTop(t) + { schedule: renderSchedule, places: renderPlaces, gear: renderGear }[tab](t);
 }
 
 function daytabs(t) {

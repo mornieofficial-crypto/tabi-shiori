@@ -81,6 +81,15 @@ function render() {
   document.body.dataset.tab = state.tab;
   document.body.dataset.bg = t ? t.background : 'plain';
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
+  if (state.view !== 'trip') state.tripMenu = false;
+  const back = $('backbtn');
+  if (state.view === 'trip' && state.tab === 'tripsettings') {
+    back.dataset.action = 'leave-trip-settings';
+    back.setAttribute('aria-label', 'しおりに戻る');
+  } else {
+    back.dataset.action = 'go-list';
+    back.setAttribute('aria-label', state.view === 'app' && state.backTo === 'trip' ? '旅行に戻る' : '旅行の一覧へ戻る');
+  }
   $('view').innerHTML = renderScreen(t);
   updateNav();
   updateTracks();
@@ -232,6 +241,7 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-action],[data-tab],[data-day],[data-filter],[data-gear]');
   if (!b) return;
   if (b.dataset.tab) {
+    state.tripMenu = false;
     state.tab = b.dataset.tab;
     render();
     scrollTo(0, 0);
@@ -255,8 +265,16 @@ document.addEventListener('click', (e) => {
   const a = b.dataset.action;
   const id = b.dataset.id;
   const t = current();
+  if (state.tripMenu && a !== 'toggle-trip-menu') {
+    state.tripMenu = false;
+    render();
+  }
   switch (a) {
     case 'close': return closeModal();
+    case 'toggle-trip-menu': state.tripMenu = !state.tripMenu; render(); return;
+    case 'close-trip-menu': return;
+    case 'open-trip-settings': state.tab = 'tripsettings'; render(); return scrollTo(0, 0);
+    case 'leave-trip-settings': state.tab = 'schedule'; render(); return scrollTo(0, 0);
     case 'save-relay': {
       const v = $('relayUrl').value.trim();
       if (!v) {

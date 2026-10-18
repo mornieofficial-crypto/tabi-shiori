@@ -340,12 +340,13 @@ body.has-nav #toastroot { bottom: calc(80px + env(safe-area-inset-bottom)); }
 #navroot { display: none; }
 body[data-view="trip"] #navroot { display: flex; }
 .backbtn { display: none; }
-body:not([data-view="list"]) .backbtn { display: inline-grid; position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 14px; z-index: 25; width: 42px; height: 42px; background: rgba(255, 255, 255, .8); }
+body[data-view="app"] .backbtn, body[data-view="trip"][data-tab="tripsettings"] .backbtn { display: inline-grid; position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 14px; z-index: 25; width: 42px; height: 42px; background: rgba(255, 255, 255, .8); }
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .backbtn { background: rgba(255, 255, 255, .6); -webkit-backdrop-filter: blur(18px) saturate(1.8); backdrop-filter: blur(18px) saturate(1.8); }
 }
 body:not([data-view="list"]) .header { display: none; }
 body:not([data-view="list"]) .wrap { padding-top: calc(60px + env(safe-area-inset-top)); }
+body[data-view="trip"]:not([data-tab="tripsettings"]) .wrap { padding-top: calc(8px + env(safe-area-inset-top)); }
 body[data-view="list"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
 body[data-view="list"] .foot, body[data-view="app"] .foot { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); margin: 0; padding: 18px 16px 4px; z-index: 4; pointer-events: none; background: linear-gradient(rgba(245, 246, 248, 0), var(--base) 55%); }
 body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
@@ -420,3 +421,35 @@ body[data-view="app"] .wrap { padding-bottom: calc(110px + env(safe-area-inset-b
 .stop .divider { margin: 8px 0; }
 .stop .card { padding-bottom: 12px; }
 .stop .optsummary { padding-bottom: 4px; min-height: 34px; }
+
+
+/* ---- 旅行の上部: 中央にしおり名(▾で切り替え)・右上に設定。その下に日付などの情報 ---- */
+.tripbarwrap { position: relative; }
+.tripbar { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px; min-height: 44px; }
+.tripbar .barside { width: 40px; height: 40px; }
+.tripswitch { justify-self: center; max-width: 100%; display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 6px 8px; border-radius: 14px; color: var(--ink); font-size: 19px; font-weight: 800; letter-spacing: -.02em; line-height: 1.3; min-height: 44px; -webkit-tap-highlight-color: transparent; }
+.tripswitch:active { background: var(--tint); }
+.tripswitch .tripname-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tripswitch .chevsw { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; color: var(--sub); transition: transform .2s ease; }
+.tripswitch .chevsw .ico { width: 16px; height: 16px; stroke-width: 2.6; }
+.tripswitch .chevsw.open { transform: rotate(180deg); }
+.tripinfo { text-align: center; margin: 2px 0 12px; }
+.tripinfo .infoline { font-size: 13px; color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 4px; }
+.tripinfo .infoline.small { color: var(--sub); }
+.tripinfo .infoline .ico { width: 15px; height: 15px; color: var(--sub); }
+.tripinfo .avatars { justify-content: center; margin-top: 8px; }
+.menuback { position: fixed; inset: 0; z-index: 29; border: 0; background: rgba(24, 43, 41, .12); padding: 0; }
+.tripmenu { position: absolute; z-index: 30; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); width: min(100%, 380px); max-height: 62dvh; overflow: auto; padding: 8px; border-radius: 20px; background: var(--paper); border: 1px solid var(--line); box-shadow: 0 4px 10px rgba(20, 40, 34, .1), 0 18px 40px rgba(20, 40, 34, .22); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .tripmenu { background: rgba(255, 255, 255, .86); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8); }
+}
+.menuhead { padding: 6px 10px 4px; font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--sub); }
+.menuitem { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: none; border-radius: 13px; padding: 10px; min-height: 48px; color: var(--ink); font-size: 14px; -webkit-tap-highlight-color: transparent; }
+.menuitem .fillspace { display: flex; flex-direction: column; min-width: 0; }
+.menuitem .fillspace b, .menuitem .fillspace > span:not(.small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menuitem:active { background: var(--tint); }
+.menuitem.current { background: var(--tint); }
+.menuitem.current .ico { color: var(--accent-ink); width: 20px; height: 20px; }
+.menuitem.add { color: var(--accent-ink); }
+.menuline { height: 1px; background: var(--line); margin: 6px 6px; }
+@media (prefers-reduced-motion: reduce) { .tripswitch .chevsw { transition: none; } }
