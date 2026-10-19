@@ -124,7 +124,7 @@ export async function load() {
   state.view = state.currentId ? 'trip' : 'list';
   state.tab = 'schedule';
   const s = await db.getMeta('settings');
-  if (s && isHex(s.accent)) state.settings.accent = s.accent.toLowerCase();
+  if (s && isHex(s.accent) && s.accent.toLowerCase() !== '#305e51') state.settings.accent = s.accent.toLowerCase(); // 旧い初期色(くすんだ緑)は、新しい初期色に置き換える
   if (s && typeof s.relay === 'string') state.settings.relay = s.relay;
   if (Array.isArray(s?.profile)) state.settings.profile = s.profile.slice(0, 2).map((p, i) => normalizeMember({ ...p, id: 'profile' + i }, i));
 }

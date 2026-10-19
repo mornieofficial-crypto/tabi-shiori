@@ -112,8 +112,8 @@ export function badgeColors(hex) {
   return { bg, border: mix(hex, '#ffffff', 0.55), ink: ensureContrast(hex, bg, 4.5) };
 }
 
-export const DEFAULT_ACCENT = '#305e51';
+export const DEFAULT_ACCENT = '#2f6bff';
 
 export const PRESET_COLORS = [
-  '#305e51', '#3b6ea5', '#7a5aa6', '#c0527a', '#c4533a', '#2b8a9d', '#5d8a3c', '#4a4a4a',
+  '#2f6bff', '#7c5cff', '#ff5fa2', '#ff6b5e', '#ff8a3d', '#14b8a6', '#1d2b53', '#4a4a4a',
 ];

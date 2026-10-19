@@ -1,8 +1,8 @@
 // キャッシュするのは、ここに列挙したアプリ本体のファイルだけ。
 // 旅行データ(IndexedDB)や、取り込んだJSONは一切キャッシュしない。
-const CACHE = 'tabiplan-v2';
+const CACHE = 'tabiplan-v4';
 const FILES = [
-  './', './index.html', './manifest.webmanifest', './icon.svg', './css/app.css',
+  './', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './css/app.css',
   './js/main.js', './js/state.js', './js/db.js', './js/model.js', './js/views.js', './js/forms.js',
   './js/ui.js', './js/io.js', './js/nav.js', './js/transit.js', './js/color.js', './js/emoji.js', './js/backgrounds.js', './js/icons.js', './js/syncCrypto.js', './js/merge.js', './js/syncCore.js', './js/sync.js', './js/util.js',
 ];
