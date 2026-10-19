@@ -632,3 +632,21 @@ body.scrolled .barsettings { opacity: 0; pointer-events: none; }
 .tripheader .daytabs button { color: rgba(255, 255, 255, .86); min-width: 76px; padding: 5px 14px 7px; font-size: 10px; line-height: 1.3; }
 .tripheader .daytabs button b { font-size: 14px; }
 .tripheader .daytabs button.active { color: var(--ink); padding-bottom: 9px; }
+
+/* 予定の項目: 1行目=ジャンルのタグ+場所の名前、2行目=予定のタイトル */
+.stopline1 .cat { flex: none; margin: 0; padding: 1px 8px; font-size: 11px; line-height: 1.5; max-width: 44%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stopline1 .tripname.muted { color: var(--sub); font-weight: 700; }
+.stopline2 .stoptitle { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--sub); font-size: 12.5px; }
+.stopline2 .optnote { margin-left: 8px; }
+
+/* 予定の項目(場所あり): 1行目=ジャンルのタグ+エリア、2行目=場所の名前(これがタイトル)。場所が未定のときは、予定のタイトルを出す */
+.stopline1 { gap: 8px; }
+.stopline1 .cat.pending { background: var(--tint); color: var(--sub); border-color: transparent; }
+.stopline1 .stoparea1 { min-width: 0; display: flex; align-items: center; gap: 3px; color: var(--sub); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stopline1 .stoparea1 .ico { width: 13px; height: 13px; flex: none; }
+.stopline1 .optnote { flex: none; color: var(--sub); font-size: 11px; }
+.stopline2 { display: block; margin-top: 2px; }
+.stopline2 .tripname { display: block; font-size: 16px; font-weight: 800; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.stoparea .ico { display: none; }
+.stopline1 .cat.pending { max-width: none; }
+.stopline2 .tripname { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
