@@ -9,7 +9,6 @@ export const state = {
   currentId: null,
   // view: list=旅行の一覧 / trip=1つの旅行の中(下のタブ) / app=アプリの設定
   view: 'list',
-  tripMenu: false, // 旅行名の▾から開く、しおりの切り替えメニュー
   backTo: '', // アプリの設定を開く前にいた場所(trip / list)
   tab: 'schedule',
   activeDay: 1,

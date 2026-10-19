@@ -246,10 +246,13 @@ test('人の絵文字は、明るい肌色にそろえる(黄色い肌にしな�
   assert.equal(t.members[1].emoji, '🐰');
 });
 
-test('下のタブバーは2つ: 左に独立したホーム、右に旅行の中のタブ', () => {
+test('下のタブバー: 旅行内のタブの右に「＋」(追加)。一覧へ戻るボタンは、旅行の上部の左上', () => {
   const html = readFileSync(join(root, 'app', 'index.html'), 'utf8');
-  assert.match(html, /id="homebtn"[^>]*data-action="go-list"/);
-  assert.match(html, /<div class="dock">[\s\S]*id="homebtn"[\s\S]*id="navroot"/, 'ホームが、旅行内のタブの左にある');
+  assert.match(html, /id="addbtn"[^>]*data-action="dock-add"/);
+  assert.match(html, /<div class="dock">[\s\S]*id="navroot"[\s\S]*id="addbtn"/, '＋が、旅行内のタブの右にある');
+  assert.doesNotMatch(html, /id="homebtn"/);
+  const views = readFileSync(join(root, 'app', 'js', 'views.js'), 'utf8');
+  assert.match(views, /class="tripheader"[\s\S]*data-action="go-list"[\s\S]*open-trip-settings/, '左上が一覧、右上が旅行の設定');
 });
 
 test('ふたりのプロフィールから新しい旅行を作る: アイコン・誕生日・色を引き継ぎ、旅行ごとのIDは新しくなる', () => {

@@ -484,11 +484,6 @@ body[data-view="app"] .scope.center { margin-top: -6px; }
 body[data-view="trip"] .dock { display: flex; }
 .dock > .nav { position: relative; left: auto; bottom: auto; transform: none; width: auto; flex: 1 1 auto; min-width: 0; display: flex !important; }
 
-.homebar { flex: 0 0 76px; display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 5px 0 4px; font: inherit; font-size: 9.5px; font-weight: 600; color: var(--accent-ink); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
-.homebar:active { transform: scale(.94); }
-.homebar .icon { margin-bottom: 1px; }
-@media (prefers-reduced-motion: reduce) { .homebar { transition: none; } }
-.dock > .homebar { flex: 0 0 76px; width: 76px; }
 
 /* 入力画面を開いている間は、後ろのページを固定する(位置は ui.js が覚えておいて、閉じたときに戻す) */
 body.modal-open { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
@@ -504,3 +499,45 @@ body[data-view="list"] .wrap, body[data-view="app"] .wrap { padding-bottom: calc
 body[data-view="trip"] .wrap { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 
 .nav .navglass.off { opacity: 0 !important; }
+
+/* ---- 旅行の上部を上に固定する(下へスクロールすると、下の段は畳まれて小さくなる) ---- */
+body[data-view="trip"]:not([data-tab="tripsettings"]) .wrap { padding-top: 0; }
+.tripheader { position: sticky; top: 0; z-index: 18; margin: 0 -16px 10px; padding: calc(8px + env(safe-area-inset-top)) 16px 4px; background: var(--paper); }
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .tripheader { background: color-mix(in srgb, var(--paper) 82%, transparent); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); }
+}
+.tripbar { grid-template-columns: 40px 1fr 40px; }
+.tripheading { min-width: 0; text-align: center; }
+.triptitle { font-size: 19px; font-weight: 800; letter-spacing: -.02em; line-height: 1.3; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: font-size .2s ease; }
+.tripplace { font-size: 12px; color: var(--sub); display: flex; align-items: center; justify-content: center; gap: 3px; overflow: hidden; white-space: nowrap; }
+.tripplace .ico { width: 13px; height: 13px; flex: none; }
+.tripinfo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 0; max-height: 44px; overflow: hidden; transition: max-height .22s ease, opacity .18s ease, margin .22s ease; }
+.tripinfo .avatars { margin: 0; justify-content: flex-start; }
+.tripinfo .infoline { font-size: 12px; color: var(--sub); display: block; text-align: right; }
+body.scrolled .tripinfo { max-height: 0; opacity: 0; margin-top: 0; }
+body.scrolled .triptitle { font-size: 16px; }
+.tripheader .daytabs { margin: 6px 0 4px; }
+.todayline { font-size: 13px; color: var(--sub); margin: 0 2px 10px; }
+@media (prefers-reduced-motion: reduce) { .tripinfo, .triptitle { transition: none; } }
+
+/* タブバーの右の「＋」(開いているページに合わせて追加する) */
+.dockadd { flex: 0 0 56px; align-self: stretch; display: none; place-items: center; padding: 0; border: 0; border-radius: 999px; color: #fff; cursor: pointer; background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); box-shadow: 0 2px 6px rgba(20, 40, 34, .18), 0 14px 30px rgba(20, 40, 34, .22); -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
+body[data-view="trip"] .dockadd:not([hidden]) { display: grid; }
+.dockadd:active { transform: scale(.93); }
+.dockadd svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+.dockadd[hidden] { display: none !important; }
+
+/* ---- 予定の項目: ジャンル・名前・エリアを、編集ボタンと同じくらいの高さの2行にまとめる ---- */
+.stophead { display: flex; align-items: center; gap: 10px; }
+.stopmain { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; -webkit-tap-highlight-color: transparent; }
+.stopmain[role="button"] { cursor: pointer; }
+.stopmain .thumb { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 11px; }
+.stopmain .emoji { flex: 0 0 34px; width: 34px; height: 34px; font-size: 26px; display: grid; place-items: center; background: none; box-shadow: none; border-radius: 0; }
+.stopline1 { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.stopline2 .cat { flex: none; margin: 0 4px 0 0; padding: 1px 8px; font-size: 11px; line-height: 1.5; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stopline1 .tripname { min-width: 0; font-size: 15px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stopline2 { display: flex; align-items: center; gap: 3px; min-width: 0; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stopline2 .ico { width: 13px; height: 13px; flex: none; }
+.stopextra { margin-top: 8px; padding-left: 2px; }
+.stopextra .stopmemo { margin-top: 4px; }
+.genrelist .cat[role="button"] { cursor: pointer; }

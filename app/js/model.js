@@ -11,7 +11,7 @@ export const COUPLE = 2;
 export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, bookings: 100, genres: 20, days: 30 };
 
 export const CATS = ['食事', 'カフェ', '観光', '宿泊', '釣り', 'お土産', '朝食', '移動', 'その他'];
-export const CAT_EMOJI = { 食事: '🍜', カフェ: '☕', 観光: '🌿', 宿泊: '♨️', 釣り: '🎣', お土産: '🎁', 朝食: '🥐', 移動: '🚗', その他: '📍' };
+export const CAT_EMOJI = { 食事: '🍜', カフェ: '☕', 観光: '🌿', 宿泊: '🏨', 釣り: '🎣', お土産: '🎁', 朝食: '🥐', 移動: '🚗', その他: '📍' };
 const DEFAULT_MEMBER_EMOJI = ['🐻', '🐰', '🐱', '🐶', '🦊', '🐼', '🐸', '🐥'];
 const MODE_IDS = new Set(MODES.map((m) => m.id));
 
@@ -125,6 +125,12 @@ export function normalizeTrip(raw) {
     genreNames.add(name);
     genres.push({ id: uniqueId(g?.id, usedG), name, emoji: str(g?.emoji, 8) || '📍' });
   }
+  // 初期のジャンルの、この旅行だけのマーク(指定したものだけ。ないものは初期のマーク)
+  const catEmoji = {};
+  for (const c of CATS) {
+    const e = lightSkin(str(t.catEmoji?.[c], 8));
+    if (e && e !== CAT_EMOJI[c]) catEmoji[c] = e;
+  }
   const placesSrc = (Array.isArray(t.places) ? t.places : []).slice(0, LIMITS.places);
   const memberIds = members.map((m) => m.id);
   const usedP = new Set();
@@ -172,6 +178,7 @@ export function normalizeTrip(raw) {
     background: BACKGROUND_IDS.has(t.background) && (t.background !== 'photo' || isPhoto(t.backgroundPhoto)) ? t.background : 'plain',
     backgroundPhoto: isPhoto(t.backgroundPhoto) ? t.backgroundPhoto : '',
     genres,
+    catEmoji,
     places,
     schedule,
     checklist,

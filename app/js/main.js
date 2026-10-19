@@ -1,6 +1,6 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
 import { renderScreen, renderNavInner, optionsOpen } from './views.js';
-import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, placeDetail } from './forms.js';
+import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, genreEditForm, placeDetail } from './forms.js';
 import { closeModal, modalOpen, scrollLocked, modalHooks, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
 import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, inviteFile, parseInviteData, normalizeRelay, parseSyncLink, links } from './sync.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
@@ -13,6 +13,14 @@ const $ = (id) => document.getElementById(id);
 // 下のタブ: 選択の変化に合わせて、ガラスの丸を目的のタブへ滑らせる
 let navReady = false;
 let lastView = '';
+// タブバーの右の「＋」: 開いているページに合わせて、追加するものを変える
+function updateAddBtn() {
+  const btn = $('addbtn');
+  const label = state.view !== 'trip' ? '' : state.tab === 'schedule' ? '予定を追加' : state.tab === 'places' ? '行きたい場所を追加' : state.tab === 'gear' ? (state.gearTab === 'booking' ? '予約を追加' : state.gearTab === 'memo' ? '' : '持ち物を追加') : '';
+  btn.hidden = !label;
+  btn.setAttribute('aria-label', label || '追加');
+}
+
 function updateNav() {
   const nav = $('navroot');
   if (!nav.firstChild) nav.innerHTML = renderNavInner();
@@ -92,7 +100,6 @@ function render() {
   document.body.dataset.tab = state.tab;
   document.body.dataset.bg = t ? t.background : 'plain';
   document.body.style.setProperty('--bg-photo', t && t.backgroundPhoto ? `url("${t.backgroundPhoto}")` : 'none');
-  if (state.view !== 'trip') state.tripMenu = false;
   const back = $('backbtn');
   if (state.view === 'trip' && state.tab === 'tripsettings') {
     back.dataset.action = 'leave-trip-settings';
@@ -102,6 +109,7 @@ function render() {
     back.setAttribute('aria-label', state.view === 'app' && state.backTo === 'trip' ? '旅行に戻る' : '旅行の一覧へ戻る');
   }
   $('view').innerHTML = renderScreen(t);
+  updateAddBtn();
   updateNav();
   updateTracks();
   centerDayTab();
@@ -262,7 +270,6 @@ document.addEventListener('click', (e) => {
   // (しないと、入力欄や文字をタップするだけで、画面が描き直されて、一番上へ戻ってしまう)
   if (!b || b === document.body) return;
   if (b.dataset.tab) {
-    state.tripMenu = false;
     state.tab = b.dataset.tab;
     render();
     scrollTo(0, 0);
@@ -286,14 +293,15 @@ document.addEventListener('click', (e) => {
   const a = b.dataset.action;
   const id = b.dataset.id;
   const t = current();
-  if (state.tripMenu && a !== 'toggle-trip-menu') {
-    state.tripMenu = false;
-    render();
-  }
   switch (a) {
     case 'close': return closeModal();
-    case 'toggle-trip-menu': state.tripMenu = !state.tripMenu; render(); return;
-    case 'close-trip-menu': return;
+    case 'dock-add': {
+      if (!t) return;
+      if (state.tab === 'schedule') return stopForm(t, null);
+      if (state.tab === 'places') return placeForm(t, null);
+      if (state.tab === 'gear') return state.gearTab === 'booking' ? bookingForm(t, null) : state.gearTab === 'memo' ? $('tripNotes')?.focus() : checkForm(t);
+      return;
+    }
     case 'open-trip-settings': state.tab = 'tripsettings'; render(); return scrollTo(0, 0);
     case 'leave-trip-settings': state.tab = 'schedule'; render(); return scrollTo(0, 0);
     case 'edit-profile': {
@@ -481,6 +489,7 @@ document.addEventListener('click', (e) => {
       return p && placeDetail(t, p);
     }
     case 'add-genre': return genreForm(t);
+    case 'edit-genre': return genreEditForm(t, id);
     case 'delete-genre': {
       const g = t.genres.find((x) => x.id === id);
       if (!g) return;
@@ -642,3 +651,11 @@ document.addEventListener('keydown', (e) => {
   if (!state.persistent) toast('この環境では保存できません。書き出しを使ってね');
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
+
+// 下へスクロールしたら、ヘッダーを小さくする(行ったり来たりしないよう、入る位置と戻る位置をずらす)
+addEventListener('scroll', () => {
+  if (document.body.classList.contains('modal-open')) return;
+  const y = window.scrollY;
+  if (y > 40) document.body.classList.add('scrolled');
+  else if (y < 8) document.body.classList.remove('scrolled');
+}, { passive: true });

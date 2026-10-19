@@ -1,6 +1,6 @@
 // 入力フォーム(モーダル)。保存時は model.js の正規化を通す。
 import { esc, uid, isDateStr, isTimeStr } from './util.js';
-import { CATS, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
+import { CATS, CAT_EMOJI, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
 import { state, hooks, touch, addTrip, getPlace, getMember, saveSettings } from './state.js';
 import { birthdayColor, isHex } from './color.js';
 import { MODES } from './transit.js';
@@ -207,7 +207,7 @@ export function stopForm(t, s, presetPlaceId = '') {
     ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : '立ち寄り'))}">`)}
     <div class="formitem" data-for="move"><label>移動手段</label><div class="modes">${MODES.map((m) => `<label class="modepill"><input type="radio" name="mode" value="${m.id}" ${(s?.mode || 'car') === m.id ? 'checked' : ''}><span>${esc(m.emoji)} ${esc(m.label)}</span></label>`).join('')}</div></div>
     <div class="formitem" data-for="stop"><label for="placeSel">選んだ場所（決まっていなければ空欄）</label><select id="placeSel" class="field" name="placeId"><option value="">未決定</option>${placeOpts}</select></div>
-    <div class="formitem" data-for="stop"><label>マーク（なしなら場所のマークを使います）</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
+    <div class="formitem" data-for="stop"><label>マーク</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
     ${item('補足メモ', `<textarea class="field" name="note" maxlength="500">${esc(s?.note || '')}</textarea>`)}
     <label class="check inline"><input type="checkbox" name="optional" ${s?.optional ? 'checked' : ''}><span>時間があれば行く</span></label>
     </div>${actions('閉じる', '保存', editing ? `<button type="button" class="btn danger" data-action="remove-stop" data-id="${esc(s.id)}">削除</button>` : '')}</form>`,
@@ -335,6 +335,38 @@ export function genreForm(t) {
       if (CATS.includes(name) || t.genres.some((g) => g.name === name)) return err(form, 'その名前のジャンルはすでにあります');
       if (t.genres.length >= LIMITS.genres) return err(form, `追加できるジャンルは${LIMITS.genres}個までです`);
       t.genres.push({ id: uid(), name, emoji: formVal(f, 'emoji') || '📍' });
+      touch(t);
+      hooks.render();
+    },
+  );
+}
+
+// ジャンルのマーク(初期のジャンルは、マークだけ。この旅行で足したジャンルは、名前も)を変える
+export function genreEditForm(t, key) {
+  const custom = t.genres.find((g) => g.id === key);
+  const builtin = CATS.includes(key) ? key : '';
+  if (!custom && !builtin) return;
+  const current = custom ? custom.emoji : t.catEmoji?.[builtin] || CAT_EMOJI[builtin];
+  openModal(
+    `<form id="modalForm"><h2>ジャンルを編集</h2><div class="formgrid">
+    ${custom ? item('名前 *', `<input class="field" name="name" required maxlength="10" value="${esc(custom.name)}">`) : `<p><b>${esc(builtin)}</b></p>`}
+    ${item('マーク', emojiField('emoji', current, { label: 'マーク' }))}
+    </div>${actions('キャンセル', '保存')}</form>`,
+    (f, form) => {
+      const emoji = formVal(f, 'emoji') || '📍';
+      if (custom) {
+        const name = formVal(f, 'name');
+        if (!name) return err(form, '名前を入れてください');
+        if (name !== custom.name && (CATS.includes(name) || t.genres.some((g) => g.name === name))) return err(form, 'その名前のジャンルはすでにあります');
+        for (const p of t.places) if (p.cat === custom.name) p.cat = name;
+        if (state.filter === custom.name) state.filter = name;
+        custom.name = name;
+        custom.emoji = emoji;
+      } else {
+        t.catEmoji = t.catEmoji || {};
+        if (emoji === CAT_EMOJI[builtin]) delete t.catEmoji[builtin];
+        else t.catEmoji[builtin] = emoji;
+      }
       touch(t);
       hooks.render();
     },
