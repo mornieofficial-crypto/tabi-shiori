@@ -1,6 +1,6 @@
 // 画面のHTMLを組み立てる(状態は変更しない)。ユーザー入力は必ず esc を通す。
 import { esc } from './util.js';
-import { CATS, CAT_EMOJI, COUPLE } from './model.js';
+import { CATS, CAT_EMOJI, ACTIONS, COUPLE } from './model.js';
 import { state, current, getPlace, getMember } from './state.js';
 import { badgeColors, PRESET_COLORS } from './color.js';
 import { modeOf, stopTimes, dayStart } from './transit.js';
@@ -137,7 +137,16 @@ function renderSchedule(t) {
 }
 
 function renderStop(t, s, nowId) {
+  if (s.kind === 'action') return renderAction(t, s, nowId);
   return s.kind === 'move' ? renderMove(t, s, nowId) : renderPlaceStop(t, s, nowId);
+}
+
+// 行動(チェックイン・休憩など)の予定: 小さな1行のカード
+function renderAction(t, s, nowId) {
+  const a = ACTIONS.find((x) => x.id === s.act) || ACTIONS[ACTIONS.length - 1];
+  const p = getPlace(t, s.placeId);
+  const sub = [p ? `${ICON.pin} ${esc(p.name)}` : '', s.note ? esc(s.note) : ''].filter(Boolean).join(' ・ ');
+  return `<div class="stop action ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" data-stop="${esc(s.id)}"><div class="time">${esc(s.time)}</div><div class="card actioncard"><span class="emoji">${esc(s.emoji || a.emoji)}</span><div class="fillspace"><div class="tripname">${esc(s.title)}</div>${sub ? `<div class="small stopline2">${sub}</div>` : ''}</div>${visitBtn(s.id, s.done, '済み')}${penBtn('edit-stop', s.id, '予定を編集')}</div></div>`;
 }
 
 function renderMove(t, s, nowId) {

@@ -1,6 +1,6 @@
 // 入力フォーム(モーダル)。保存時は model.js の正規化を通す。
 import { esc, uid, isDateStr, isTimeStr } from './util.js';
-import { CATS, CAT_EMOJI, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
+import { CATS, CAT_EMOJI, ACTIONS, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
 import { state, hooks, touch, addTrip, getPlace, getMember, saveSettings } from './state.js';
 import { birthdayColor, isHex } from './color.js';
 import { MODES } from './transit.js';
@@ -201,35 +201,37 @@ export function stopForm(t, s, presetPlaceId = '') {
   const placeOpts = t.places.map((p) => `<option value="${esc(p.id)}" ${placeId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
   openModal(
     `<form id="modalForm"><h2>${editing ? '予定を編集' : `${state.activeDay}日目に予定を追加`}</h2><div class="formgrid">
-    <div class="segment" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>${ICON.pin} 立ち寄り・食事</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>${ICON.navigate} 移動</label></div>
+    <div class="segment" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>${ICON.pin} 立ち寄り・食事</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>${ICON.navigate} 移動</label><label><input type="radio" name="kind" value="action" ${kind === 'action' ? 'checked' : ''}>${ICON.check} 行動</label></div>
     ${item('日程', `<select class="field" name="day">${Array.from({ length: t.days }, (_, i) => `<option value="${i + 1}" ${(s?.day || state.activeDay) === i + 1 ? 'selected' : ''}>${i + 1}日目</option>`).join('')}</select>`)}
     <div class="flex"><div class="formitem grow"><label>${kind === 'move' ? '出発' : '時間'} *</label><input class="field" type="time" required name="time" value="${esc(s?.time || '12:00')}"></div><div class="formitem grow" data-for="move"><label>到着</label><input class="field" type="time" name="endTime" value="${esc(s?.endTime || '')}"></div></div>
-    ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : '立ち寄り'))}">`)}
+    ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : kind === 'action' ? ACTIONS.find((a) => a.id === (s?.act || 'checkin')).label : '立ち寄り'))}">`)}
+    <div class="formitem" data-for="action"><label>行動の種類</label><div class="modes">${ACTIONS.map((a) => `<label class="modepill"><input type="radio" name="act" value="${a.id}" ${(s?.act || 'checkin') === a.id ? 'checked' : ''}><span>${a.emoji} ${a.label}</span></label>`).join('')}</div></div>
     <div class="formitem" data-for="move"><label>移動手段</label><div class="modes">${MODES.map((m) => `<label class="modepill"><input type="radio" name="mode" value="${m.id}" ${(s?.mode || 'car') === m.id ? 'checked' : ''}><span>${esc(m.emoji)} ${esc(m.label)}</span></label>`).join('')}</div></div>
-    <div class="formitem" data-for="stop"><label for="placeSel">選んだ場所（決まっていなければ空欄）</label><select id="placeSel" class="field" name="placeId"><option value="">未決定</option>${placeOpts}</select></div>
-    <div class="formitem" data-for="stop"><label>マーク</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
+    <div class="formitem" data-for="stop action"><label for="placeSel">選んだ場所（決まっていなければ空欄）</label><select id="placeSel" class="field" name="placeId"><option value="">未決定</option>${placeOpts}</select></div>
+    <div class="formitem" data-for="stop action"><label>マーク</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
     ${item('補足メモ', `<textarea class="field" name="note" maxlength="500">${esc(s?.note || '')}</textarea>`)}
     <label class="check inline"><input type="checkbox" name="optional" ${s?.optional ? 'checked' : ''}><span>時間があれば行く</span></label>
     </div>${actions('閉じる', '保存', editing ? `<button type="button" class="btn danger" data-action="remove-stop" data-id="${esc(s.id)}">削除</button>` : '')}</form>`,
     (f, form) => {
-      const k = formVal(f, 'kind') === 'move' ? 'move' : 'stop';
+      const kv = formVal(f, 'kind');
+      const k = kv === 'move' ? 'move' : kv === 'action' ? 'action' : 'stop';
       const time = formVal(f, 'time');
       const endTime = k === 'move' ? formVal(f, 'endTime') : '';
       const title = formVal(f, 'title');
       if (!title) return err(form, 'タイトルを入れてください');
       if (!isTimeStr(time)) return err(form, '時間を入れてください');
       if (endTime && (!isTimeStr(endTime) || endTime <= time)) return err(form, '到着は出発より後の時刻にしてください(日をまたぐ移動は2つに分けてね)');
-      const pid = k === 'stop' && getPlace(t, formVal(f, 'placeId')) ? formVal(f, 'placeId') : '';
-      const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k === 'stop' ? formVal(f, 'emoji') : '' };
+      const pid = k !== 'move' && getPlace(t, formVal(f, 'placeId')) ? formVal(f, 'placeId') : '';
+      const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k !== 'move' ? formVal(f, 'emoji') : '', act: k === 'action' && ACTIONS.some((a) => a.id === formVal(f, 'act')) ? formVal(f, 'act') : '' };
       if (editing) {
         state.focusStop = s.id;
         Object.assign(s, obj);
         s.options = k === 'stop' ? s.options.filter((id) => getPlace(t, id)) : [];
-        if (pid && !s.options.includes(pid)) s.options.push(pid);
+        if (k === 'stop' && pid && !s.options.includes(pid)) s.options.push(pid);
       } else {
         const newId = uid();
         state.focusStop = newId;
-        t.schedule.push({ id: newId, ...obj, options: pid ? [pid] : [], done: false });
+        t.schedule.push({ id: newId, ...obj, options: k === 'stop' && pid ? [pid] : [], done: false });
       }
       state.activeDay = obj.day;
       state.tab = 'schedule';
@@ -241,10 +243,11 @@ export function stopForm(t, s, presetPlaceId = '') {
   const sync = () => {
     const el = form.elements;
     const k = el.kind.value;
-    form.querySelectorAll('[data-for]').forEach((el) => (el.hidden = el.dataset.for !== k));
+    form.querySelectorAll('[data-for]').forEach((el) => (el.hidden = !el.dataset.for.split(' ').includes(k)));
     const first = form.querySelector('.flex .formitem label');
     if (first) first.textContent = (k === 'move' ? '出発' : '時間') + ' *';
-    if (!editing && (el.title.value === '立ち寄り' || el.title.value === '移動')) el.title.value = k === 'move' ? '移動' : '立ち寄り';
+    const defaults = ['立ち寄り', '移動', ...ACTIONS.map((a) => a.label)];
+    if (!editing && defaults.includes(el.title.value)) el.title.value = k === 'move' ? '移動' : k === 'action' ? ACTIONS.find((a) => a.id === (el.act.value || 'checkin'))?.label || 'チェックイン' : '立ち寄り';
   };
   form.addEventListener('change', sync);
   sync();

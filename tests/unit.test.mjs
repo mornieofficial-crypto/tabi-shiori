@@ -265,3 +265,21 @@ test('ふたりのプロフィールから新しい旅行を作る: アイコン
   assert.notEqual(t.members[0].id, 'profile0');
   assert.equal(t.members[1].color, '#3b6ea5');
 });
+
+test('予定の「行動」(チェックインなど): 種類が残り、場所は持てるが候補は持たない。知らない種類は「その他」', () => {
+  const t = normalizeTrip({ days: 1, places: [{ id: 'h', name: 'ホテル' }], schedule: [
+    { id: 'a', kind: 'action', act: 'checkin', placeId: 'h', options: ['h'], time: '14:00' },
+    { id: 'b', kind: 'action', act: 'xxx', time: '15:00' },
+    { id: 'c', kind: 'stop', placeId: 'h', time: '12:00' },
+  ] });
+  const [a, b, c] = t.schedule;
+  assert.equal(a.kind, 'action');
+  assert.equal(a.act, 'checkin');
+  assert.equal(a.title, 'チェックイン');
+  assert.equal(a.placeId, 'h');
+  assert.deepEqual(a.options, []);
+  assert.equal(b.act, 'other');
+  assert.equal(c.kind, 'stop');
+  assert.equal(c.act, '');
+  assert.deepEqual(c.options, ['h']);
+});

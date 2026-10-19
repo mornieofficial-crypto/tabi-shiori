@@ -13,6 +13,16 @@ export const LIMITS = { members: 8, places: 500, schedule: 500, checklist: 200, 
 export const CATS = ['食事', 'カフェ', '観光', '宿泊', '釣り', 'お土産', '朝食', '移動', 'その他'];
 export const CAT_EMOJI = { 食事: '🍜', カフェ: '☕', 観光: '🌿', 宿泊: '🏨', 釣り: '🎣', お土産: '🎁', 朝食: '🥐', 移動: '🚗', その他: '📍' };
 const DEFAULT_MEMBER_EMOJI = ['🐻', '🐰', '🐱', '🐶', '🦊', '🐼', '🐸', '🐥'];
+// 「行動」の予定(チェックインなど。場所をめぐる予定でも、移動でもない、小さな予定)
+export const ACTIONS = [
+  { id: 'checkin', emoji: '🛏️', label: 'チェックイン' },
+  { id: 'checkout', emoji: '🧳', label: 'チェックアウト' },
+  { id: 'depart', emoji: '🚩', label: '出発' },
+  { id: 'home', emoji: '🏠', label: '帰宅' },
+  { id: 'rest', emoji: '🛋️', label: '休憩' },
+  { id: 'other', emoji: '✅', label: 'その他' },
+];
+const ACTION_IDS = new Set(ACTIONS.map((a) => a.id));
 const MODE_IDS = new Set(MODES.map((m) => m.id));
 
 const cleanId = (v) => {
@@ -82,10 +92,11 @@ function normalizePlace(raw, memberIds, used, allowedCats = new Set(CATS)) {
 
 function normalizeStop(raw, days, placeIds, used) {
   const s = raw && typeof raw === 'object' ? raw : {};
-  const kind = s.kind === 'move' ? 'move' : 'stop';
+  const kind = s.kind === 'move' ? 'move' : s.kind === 'action' ? 'action' : 'stop';
+  const act = ACTION_IDS.has(s.act) ? s.act : 'other';
   const placeId = placeIds.has(s.placeId) ? s.placeId : '';
   const options = (Array.isArray(s.options) ? s.options : []).filter((id) => placeIds.has(id)).slice(0, 20);
-  if (placeId && !options.includes(placeId)) options.push(placeId);
+  if (kind === 'stop' && placeId && !options.includes(placeId)) options.push(placeId);
   const time = isTimeStr(s.time) ? s.time : '12:00';
   return {
     id: uniqueId(s.id, used),
@@ -93,9 +104,10 @@ function normalizeStop(raw, days, placeIds, used) {
     day: clamp(Math.round(Number(s.day)) || 1, 1, days),
     time,
     endTime: isTimeStr(s.endTime) && s.endTime > time ? s.endTime : '',
-    title: str(s.title, 100).trim() || (kind === 'move' ? '移動' : '立ち寄り'),
+    title: str(s.title, 100).trim() || (kind === 'move' ? '移動' : kind === 'action' ? ACTIONS.find((a) => a.id === act).label : '立ち寄り'),
+    act: kind === 'action' ? act : '',
     placeId: kind === 'move' ? '' : placeId,
-    options: kind === 'move' ? [] : options,
+    options: kind === 'stop' ? options : [],
     note: str(s.note, 500),
     optional: !!s.optional,
     done: !!s.done,

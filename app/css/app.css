@@ -541,3 +541,14 @@ body[data-view="trip"] .dockadd:not([hidden]) { display: grid; }
 .stopextra { margin-top: 8px; padding-left: 2px; }
 .stopextra .stopmemo { margin-top: 4px; }
 .genrelist .cat[role="button"] { cursor: pointer; }
+
+/* ---- 予定の3つの種類: スポット(大きなカード) / 移動(細い線のカード) / 行動(小さな1行のカード) ---- */
+.stop.action .card.actioncard { display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 12px; border-radius: 16px; }
+.stop.action .actioncard .emoji { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; font-size: 22px; background: none; box-shadow: none; border-radius: 0; }
+.stop.action .actioncard .tripname { font-size: 14px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stop.action .actioncard .fillspace { min-width: 0; }
+.stop.action .actioncard .iconbtn { flex: none; }
+.stop.move .card { background: transparent; border: 1.5px dashed var(--line); box-shadow: none; padding: 7px 10px 7px 12px; border-radius: 14px; }
+.stop.move .card h3 { font-size: 13.5px; margin: 2px 0 0; }
+.stop.move .card .trackstatus:empty { display: none; }
+.stop.move .card .place-actions { margin-top: 4px; }
