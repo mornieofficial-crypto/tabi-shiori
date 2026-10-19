@@ -132,5 +132,5 @@ export function applyTheme(trip) {
   const vars = themeFor(trip);
   const root = document.documentElement;
   for (const [k, v] of Object.entries(vars)) root.style.setProperty(k, v);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', vars['--tint']);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', vars['--accent-ink']);
 }

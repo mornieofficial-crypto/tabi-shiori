@@ -628,6 +628,15 @@ document.addEventListener('keydown', (e) => {
 
 // ---- 起動 ----
 (async function start() {
+  const startedAt = performance.now();
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hideSplash = () => {
+    const sp = document.getElementById('splash');
+    if (!sp) return;
+    sp.classList.add('hide');
+    setTimeout(() => sp.remove(), 450);
+  };
+  setTimeout(hideSplash, 6000); // 万一のとき
   try {
     await load();
   } catch {
@@ -649,6 +658,8 @@ document.addEventListener('keydown', (e) => {
     syncJoinForm(joinLink);
   }
   if (!state.persistent) toast('この環境では保存できません。書き出しを使ってね');
+  // 読み込み中の、車が走る画面は、少なくとも1.3秒は見せる(動きを減らす設定のときは、すぐ消す)
+  setTimeout(hideSplash, reduceMotion ? 0 : Math.max(0, 1300 - (performance.now() - startedAt)));
   if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
 

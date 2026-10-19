@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.workers.dev; object-src 'none'; base-uri 'none'; form-action 'none'">
-<meta name="theme-color" content="#eaf0ff">
+<meta name="theme-color" content="#2457d6">
 <meta name="description" content="行きたい場所をみんなで選んで、旅行のしおりに。旅のプランを作るWebアプリ。">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="旅のプラン">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -15,6 +16,7 @@
 <title>旅のプラン｜旅行を選ぶ・決める・楽しむ</title>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="splashscene"><svg class="splashcar" viewBox="96 226 264 224"><g class="carbob"><rect x="104" y="238" width="236" height="170" rx="40" fill="#ff7a1a"/><path d="M104 278a40 40 0 0 1 40-40h156a40 40 0 0 1 40 40v-6H104z" fill="#f4f6fb"/><rect x="128" y="290" width="88" height="56" rx="12" fill="#243a73"/><path d="M228 290h66c8 0 20 6 24 16l6 40h-96z" fill="#243a73"/><rect x="216" y="290" width="12" height="60" fill="#ff7a1a"/><path d="M104 362h236" stroke="#e5620b" stroke-width="4"/><rect x="318" y="368" width="34" height="22" rx="8" fill="#d6dbe8"/><circle cx="332" cy="356" r="12" fill="#fff" stroke="#d6dbe8" stroke-width="4"/><g class="wheel"><circle cx="150" cy="410" r="31" fill="#0e1733"/><circle cx="150" cy="410" r="14" fill="#cfd6e6"/><path d="M150 396v28M136 410h28" stroke="#0e1733" stroke-width="5"/></g><g class="wheel"><circle cx="296" cy="410" r="31" fill="#0e1733"/><circle cx="296" cy="410" r="14" fill="#cfd6e6"/><path d="M296 396v28M282 410h28" stroke="#0e1733" stroke-width="5"/></g></g></svg><div class="splashroad"></div></div><div class="splashname">旅のプラン</div></div>
 <div class="wrap">
   <div class="header"><span class="logo">🧳</span><div class="brand">旅行一覧<small>PLAN TOGETHER. TRAVEL BETTER.</small></div><div class="headright"><button class="iconbtn" data-action="open-app-settings" aria-label="アプリの設定"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div></div>
   <main id="view"></main>
