@@ -601,3 +601,34 @@ body.scrolled .barsettings { opacity: 0; pointer-events: none; }
 .placeopt small { flex: none; color: var(--sub); font-size: 11px; }
 .placeopt.new { color: var(--accent-ink); font-weight: 700; justify-content: flex-start; }
 .placeresults .small { padding: 12px 14px; }
+
+/* ---- 旅行の上部: 色をつけた帯。日にちのタブは、予定の面とつながったタブ(上の左右が角丸・同じ色) ---- */
+.tripheader { background: var(--tint); -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0; }
+@supports (color: color-mix(in srgb, red, blue)) {
+  .tripheader { background: color-mix(in srgb, var(--accent) 11%, #ffffff); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+.tripheader:has(.daytabs) { margin-bottom: 0; padding-bottom: 0; }
+.tripheader .daytabs { margin: 10px -16px 0; padding: 0 30px; gap: 4px; justify-content: center; align-items: flex-end; border-radius: 0; background: none; border: 0; box-shadow: none; overflow-x: auto; overflow-y: hidden; }
+.tripheader .daytabs button { position: relative; flex: 0 0 auto; min-width: 84px; padding: 8px 16px 10px; margin: 0; border: 0; border-radius: 16px 16px 0 0; background: none; box-shadow: none; color: var(--sub); text-align: center; }
+.tripheader .daytabs button b { font-size: 15px; font-weight: 700; color: inherit; }
+.tripheader .daytabs button.active { background: var(--base); color: var(--ink); padding-bottom: 12px; margin-bottom: 0; }
+.tripheader .daytabs button.active b { font-weight: 800; }
+.tripheader .daytabs button.active::before, .tripheader .daytabs button.active::after { content: ''; position: absolute; bottom: 0; width: 16px; height: 16px; margin: 0; border-radius: 0; background: none; box-shadow: none; }
+.tripheader .daytabs button.active::before { left: -16px; right: auto; background: radial-gradient(circle at 0 0, transparent 15.5px, var(--base) 16px); }
+.tripheader .daytabs button.active::after { right: -16px; left: auto; background: radial-gradient(circle at 100% 0, transparent 15.5px, var(--base) 16px); }
+.daypanel { padding-top: 14px; }
+
+/* ---- 旅行の上部: アプリの色のグラデーション帯(白い文字)。期間は小さなバッジ。タブは低めに ---- */
+.tripheader { background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); color: #fff; box-shadow: 0 6px 18px rgba(20, 40, 34, .12); }
+@supports (color: color-mix(in srgb, red, blue)) {
+  .tripheader { background: linear-gradient(135deg, var(--accent-ink), color-mix(in srgb, var(--accent-ink) 78%, #ffffff)); }
+}
+.tripheader .triptitle { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.tripheader .tripplace { color: rgba(255, 255, 255, .88); }
+.tripheader .tripplace .ico { color: rgba(255, 255, 255, .88); }
+.tripheader .avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, .92); }
+.tripheader .tripinfo .infoline { color: #fff; font-weight: 700; padding: 3px 11px; border-radius: 999px; background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .35); }
+.tripheader .daytabs { margin-top: 8px; }
+.tripheader .daytabs button { color: rgba(255, 255, 255, .86); min-width: 76px; padding: 5px 14px 7px; font-size: 10px; line-height: 1.3; }
+.tripheader .daytabs button b { font-size: 14px; }
+.tripheader .daytabs button.active { color: var(--ink); padding-bottom: 9px; }
