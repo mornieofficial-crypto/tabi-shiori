@@ -198,7 +198,6 @@ export function stopForm(t, s, presetPlaceId = '') {
   const editing = !!s;
   const placeId = presetPlaceId || s?.placeId || '';
   const kind = s?.kind || 'stop';
-  const placeOpts = t.places.map((p) => `<option value="${esc(p.id)}" ${placeId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
   openModal(
     `<form id="modalForm"><h2>${editing ? '予定を編集' : `${state.activeDay}日目に予定を追加`}</h2><div class="formgrid">
     <div class="segment" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>${ICON.pin} 立ち寄り・食事</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>${ICON.navigate} 移動</label><label><input type="radio" name="kind" value="action" ${kind === 'action' ? 'checked' : ''}>${ICON.check} 行動</label></div>
@@ -207,7 +206,11 @@ export function stopForm(t, s, presetPlaceId = '') {
     ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : kind === 'action' ? ACTIONS.find((a) => a.id === (s?.act || 'checkin')).label : '立ち寄り'))}">`)}
     <div class="formitem" data-for="action"><label>行動の種類</label><div class="modes">${ACTIONS.map((a) => `<label class="modepill"><input type="radio" name="act" value="${a.id}" ${(s?.act || 'checkin') === a.id ? 'checked' : ''}><span>${a.emoji} ${a.label}</span></label>`).join('')}</div></div>
     <div class="formitem" data-for="move"><label>移動手段</label><div class="modes">${MODES.map((m) => `<label class="modepill"><input type="radio" name="mode" value="${m.id}" ${(s?.mode || 'car') === m.id ? 'checked' : ''}><span>${esc(m.emoji)} ${esc(m.label)}</span></label>`).join('')}</div></div>
-    <div class="formitem" data-for="stop action"><label for="placeSel">選んだ場所（決まっていなければ空欄）</label><select id="placeSel" class="field" name="placeId"><option value="">未決定</option>${placeOpts}</select></div>
+    <div class="formitem placepick" data-for="stop action" data-placepick><label for="placeQuery">場所</label>
+    <input type="hidden" name="placeId" value="${esc(placeId)}"><input type="hidden" name="newPlace" value="">
+    <div class="placechip" data-placechip></div>
+    <input id="placeQuery" class="field" type="search" placeholder="検索、または名前を入力" autocomplete="off" enterkeyhint="search" maxlength="130">
+    <div class="placeresults" data-placeresults hidden></div></div>
     <div class="formitem" data-for="stop action"><label>マーク</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
     ${item('補足メモ', `<textarea class="field" name="note" maxlength="500">${esc(s?.note || '')}</textarea>`)}
     <label class="check inline"><input type="checkbox" name="optional" ${s?.optional ? 'checked' : ''}><span>時間があれば行く</span></label>
@@ -221,7 +224,18 @@ export function stopForm(t, s, presetPlaceId = '') {
       if (!title) return err(form, 'タイトルを入れてください');
       if (!isTimeStr(time)) return err(form, '時間を入れてください');
       if (endTime && (!isTimeStr(endTime) || endTime <= time)) return err(form, '到着は出発より後の時刻にしてください(日をまたぐ移動は2つに分けてね)');
-      const pid = k !== 'move' && getPlace(t, formVal(f, 'placeId')) ? formVal(f, 'placeId') : '';
+      let pid = k !== 'move' && getPlace(t, formVal(f, 'placeId')) ? formVal(f, 'placeId') : '';
+      const newName = k !== 'move' ? formVal(f, 'newPlace').slice(0, 130) : '';
+      if (newName && !pid) {
+        // 行きたい場所に入っていない場所を、自由に入力して、そのまま登録する
+        const known = t.places.find((p) => p.name === newName);
+        if (known) pid = known.id;
+        else {
+          if (t.places.length >= LIMITS.places) return err(form, `場所は${LIMITS.places}件までです`);
+          pid = uid();
+          t.places.push({ id: pid, name: newName, cat: 'その他', emoji: '', photo: '', region: '', location: '', memo: '', lat: null, lon: null, votes: {} });
+        }
+      }
       const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k !== 'move' ? formVal(f, 'emoji') : '', act: k === 'action' && ACTIONS.some((a) => a.id === formVal(f, 'act')) ? formVal(f, 'act') : '' };
       if (editing) {
         state.focusStop = s.id;
@@ -251,6 +265,54 @@ export function stopForm(t, s, presetPlaceId = '') {
   };
   form.addEventListener('change', sync);
   sync();
+  setupPlacePick(t, form);
+}
+
+// 場所の検索と自由入力。候補は端末の中の「行きたい場所」だけから探す(通信しない)
+function setupPlacePick(t, form) {
+  const root = form.querySelector('[data-placepick]');
+  if (!root) return;
+  const idEl = form.elements.placeId;
+  const newEl = form.elements.newPlace;
+  const q = root.querySelector('#placeQuery');
+  const chip = root.querySelector('[data-placechip]');
+  const box = root.querySelector('[data-placeresults]');
+  const showChip = () => {
+    const p = getPlace(t, idEl.value);
+    const label = p ? p.name : newEl.value ? newEl.value + '(新しい場所)' : '';
+    chip.hidden = !label;
+    chip.innerHTML = label ? `<span>${ICON.pin} ${esc(label)}</span><button type="button" data-pick="" aria-label="場所を外す">×</button>` : '';
+  };
+  const render = () => {
+    const text = q.value.trim().toLocaleLowerCase();
+    const list = t.places.filter((p) => !text || [p.name, p.region, p.location, p.memo, p.cat].some((v) => String(v || '').toLocaleLowerCase().includes(text))).slice(0, 8);
+    const exact = t.places.some((p) => p.name.toLocaleLowerCase() === text);
+    const rows = list.map((p) => `<button type="button" class="placeopt" data-pick="${esc(p.id)}"><span>${esc(p.name)}</span><small>${esc(p.region || p.cat)}</small></button>`);
+    if (text && !exact) rows.push(`<button type="button" class="placeopt new" data-pick-new>＋ 「${esc(q.value.trim())}」を新しい場所にする</button>`);
+    box.innerHTML = rows.join('') || '<div class="small">一致する場所はありません</div>';
+    box.hidden = false;
+  };
+  const choose = (id, name = '') => {
+    idEl.value = id;
+    newEl.value = name;
+    q.value = '';
+    box.hidden = true;
+    showChip();
+  };
+  q.addEventListener('input', render);
+  q.addEventListener('focus', render);
+  q.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    box.querySelector('[data-pick]:not([data-pick=""]), [data-pick-new]')?.click();
+  });
+  root.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-pick], [data-pick-new]');
+    if (!b) return;
+    if (b.hasAttribute('data-pick-new')) choose('', q.value.trim());
+    else choose(b.dataset.pick);
+  });
+  showChip();
 }
 
 export function dayPickForm(t, id) {

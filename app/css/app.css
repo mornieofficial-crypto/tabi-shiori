@@ -521,7 +521,7 @@ body.scrolled .triptitle { font-size: 16px; }
 @media (prefers-reduced-motion: reduce) { .tripinfo, .triptitle { transition: none; } }
 
 /* タブバーの右の「＋」(開いているページに合わせて追加する) */
-.dockadd { flex: 0 0 56px; align-self: stretch; display: none; place-items: center; padding: 0; border: 0; border-radius: 999px; color: #fff; cursor: pointer; background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); box-shadow: 0 2px 6px rgba(20, 40, 34, .18), 0 14px 30px rgba(20, 40, 34, .22); -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
+.dockadd { flex: 0 0 59px; width: 59px; height: 59px; align-self: center; display: none; place-items: center; padding: 0; border: 0; border-radius: 999px; color: #fff; cursor: pointer; background: linear-gradient(135deg, var(--accent-ink), var(--accent-ink2)); box-shadow: 0 2px 6px rgba(20, 40, 34, .18), 0 14px 30px rgba(20, 40, 34, .22); -webkit-tap-highlight-color: transparent; transition: transform .15s ease; }
 body[data-view="trip"] .dockadd:not([hidden]) { display: grid; }
 .dockadd:active { transform: scale(.93); }
 .dockadd svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
@@ -548,7 +548,56 @@ body[data-view="trip"] .dockadd:not([hidden]) { display: grid; }
 .stop.action .actioncard .tripname { font-size: 14px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stop.action .actioncard .fillspace { min-width: 0; }
 .stop.action .actioncard .iconbtn { flex: none; }
-.stop.move .card { background: transparent; border: 1.5px dashed var(--line); box-shadow: none; padding: 7px 10px 7px 12px; border-radius: 14px; }
+.stop.move .card { background: rgba(255, 255, 255, .42); border: 1px solid rgba(255, 255, 255, .85); box-shadow: 0 1px 2px rgba(20, 40, 34, .04), 0 6px 16px rgba(20, 40, 34, .05); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); padding: 7px 10px 7px 12px; border-radius: 14px; }
 .stop.move .card h3 { font-size: 13.5px; margin: 2px 0 0; }
 .stop.move .card .trackstatus:empty { display: none; }
 .stop.move .card .place-actions { margin-top: 4px; }
+
+/* ---- モーダルの閉じる(×): 保存(✓)と同じ作り・同じ大きさ・同じ影。色は白のまま ---- */
+.iconbtn.closer { color: var(--ink); box-shadow: 0 2px 4px rgba(20, 40, 34, .15), 0 6px 14px rgba(20, 40, 34, .22); }
+.modalhead .iconbtn { width: 40px; height: 40px; }
+.modalhead .iconbtn svg { width: 20px; height: 20px; }
+
+/* ---- 旅行の上部: 3つの列(左 40px / 中央のしおり名 / 右 40px)の中心をそろえる。
+   下へスクロールすると、左の【一覧】は参加メンバーのアイコンに、右の【設定】は消える ---- */
+.barleft { display: grid; align-items: center; justify-items: start; width: 40px; min-height: 40px; position: relative; }
+.barleft > * { grid-area: 1 / 1; transition: opacity .18s ease; }
+.baravatars { margin: 0; flex-wrap: nowrap; opacity: 0; pointer-events: none; }
+body.scrolled .barleft .barlist { opacity: 0; pointer-events: none; }
+body.scrolled .baravatars { opacity: 1; }
+body.scrolled .barsettings { opacity: 0; pointer-events: none; }
+.barsettings { transition: opacity .18s ease; }
+.tripbar { grid-template-columns: 1fr auto 1fr; }
+.tripbar .barleft { width: auto; justify-self: start; }
+.tripbar .barsettings { justify-self: end; }
+.tripheading { max-width: 60vw; }
+.tripinfo { justify-content: center; gap: 8px; }
+.tripinfo .infoline { text-align: center; }
+.tripinfo .infodot { color: var(--sub); font-size: 12px; }
+.baravatars .avatar { width: 30px; height: 30px; font-size: 16px; }
+.tripheader .daytabs { justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .barleft > *, .barsettings { transition: none; } }
+
+/* 予定の項目: 1行目=予定のタイトル、2行目=ジャンル+場所の名前。エリア・住所・メモはその下 */
+.stopline1 .tripname { font-size: 15.5px; font-weight: 800; }
+.stopline2 .cat { margin: 0 6px 0 0; }
+.stopline2 .placename { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-size: 13px; }
+.stopline2 .placename.muted { color: var(--sub); }
+.stopline2 .optnote { flex: none; margin-left: 6px; color: var(--sub); font-size: 11px; }
+.stoparea { display: flex; align-items: flex-start; gap: 4px; }
+.stoparea .ico { width: 13px; height: 13px; margin-top: 2px; flex: none; }
+
+/* 場所の検索・自由入力 */
+.placechip { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 12px; margin-bottom: 8px; border-radius: 12px; background: var(--tint); color: var(--accent-ink); font-weight: 700; font-size: 14px; }
+.placechip[hidden] { display: none; }
+.placechip span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.placechip .ico { width: 15px; height: 15px; flex: none; }
+.placechip button { flex: none; width: 28px; height: 28px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .8); color: var(--ink); font-size: 16px; line-height: 1; }
+.placeresults { margin-top: 6px; border: 1px solid var(--line); border-radius: 14px; background: #fff; max-height: 220px; overflow: auto; }
+.placeopt { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--ink); font-size: 14px; text-align: left; }
+.placeopt:last-child { border-bottom: 0; }
+.placeopt:active { background: var(--tint); }
+.placeopt span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.placeopt small { flex: none; color: var(--sub); font-size: 11px; }
+.placeopt.new { color: var(--accent-ink); font-weight: 700; justify-content: flex-start; }
+.placeresults .small { padding: 12px 14px; }

@@ -50,7 +50,7 @@ export function openModal(html, onSubmit) {
 }
 
 // 閉じる(左上)と保存(右上)を、アイコンで画面の上に固定する。削除などの追加ボタンは下に残す。
-const X_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const X_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const CHECK_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 function restructureModal() {
@@ -62,7 +62,7 @@ function restructureModal() {
   const submit = actions?.querySelector('button[type="submit"]');
   const head = document.createElement('div');
   head.className = 'modalhead';
-  head.innerHTML = `<button type="button" class="iconbtn" data-action="close" aria-label="閉じる">${X_ICON}</button>`;
+  head.innerHTML = `<button type="button" class="iconbtn closer" data-action="close" aria-label="閉じる">${X_ICON}</button>`;
   head.append(h2);
   if (form && submit) {
     head.insertAdjacentHTML('beforeend', `<button type="submit" form="modalForm" class="iconbtn primary" aria-label="${esc(submit.textContent.trim() || '保存')}">${CHECK_ICON}</button>`);
