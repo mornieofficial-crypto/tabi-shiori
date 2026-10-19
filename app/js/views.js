@@ -91,7 +91,7 @@ export function renderNavInner() {
 function tripTop(t, extra = '') {
   const avatars = t.members.map(avatar).join('');
   return `<div class="tripheader"><div class="tripbar"><div class="barleft"><button class="iconbtn barlist" data-action="go-list" aria-label="旅行の一覧へ">${ICON.note}</button><div class="avatars baravatars" aria-label="参加メンバー">${avatars}</div></div><div class="tripheading"><div class="triptitle">${esc(t.name)}</div><div class="tripplace">${ICON.pin} ${esc(t.destination || '行き先を決めよう')}</div></div><button class="iconbtn barsettings" data-action="open-trip-settings" aria-label="この旅行の設定">${ICON.sliders}</button></div>
-  <div class="tripinfo"><div class="avatars">${avatars}</div><div class="infoline small">${esc(rangeText(t))} ・ ${t.days}日間</div></div>${extra}</div>`;
+  <div class="tripinfo"><div class="avatars">${avatars}</div></div>${extra}</div>`;
 }
 
 export function renderScreen(t) {

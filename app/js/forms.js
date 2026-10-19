@@ -194,6 +194,16 @@ export function placeForm(t, p) {
   });
 }
 
+// 行きたい場所に入っていない名前を、そのまま場所として登録する(同じ名前があれば、それを使う)
+function ensurePlace(t, name) {
+  const known = t.places.find((p) => p.name === name);
+  if (known) return known.id;
+  if (t.places.length >= LIMITS.places) return null;
+  const id = uid();
+  t.places.push({ id, name, cat: 'その他', emoji: '', photo: '', region: '', location: '', memo: '', lat: null, lon: null, votes: {} });
+  return id;
+}
+
 export function stopForm(t, s, presetPlaceId = '') {
   const editing = !!s;
   const placeId = presetPlaceId || s?.placeId || '';
@@ -211,6 +221,11 @@ export function stopForm(t, s, presetPlaceId = '') {
     <div class="placechip" data-placechip></div>
     <input id="placeQuery" class="field" type="search" placeholder="検索、または名前を入力" autocomplete="off" enterkeyhint="search" maxlength="130">
     <div class="placeresults" data-placeresults hidden></div></div>
+    <div class="formitem placepick" data-for="stop" data-optpick><label for="optQuery">候補</label>
+    <input type="hidden" name="options" value="${esc(JSON.stringify(s?.options || (placeId ? [placeId] : [])))}"><input type="hidden" name="newOptions" value="[]">
+    <div class="optchips" data-optchips></div>
+    <input id="optQuery" class="field" type="search" placeholder="候補に追加する場所を検索、または入力" autocomplete="off" enterkeyhint="search" maxlength="130">
+    <div class="placeresults" data-optresults hidden></div></div>
     <div class="formitem" data-for="stop action"><label>マーク</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
     ${item('補足メモ', `<textarea class="field" name="note" maxlength="500">${esc(s?.note || '')}</textarea>`)}
     <label class="check inline"><input type="checkbox" name="optional" ${s?.optional ? 'checked' : ''}><span>時間があれば行く</span></label>
@@ -228,24 +243,32 @@ export function stopForm(t, s, presetPlaceId = '') {
       const newName = k !== 'move' ? formVal(f, 'newPlace').slice(0, 130) : '';
       if (newName && !pid) {
         // 行きたい場所に入っていない場所を、自由に入力して、そのまま登録する
-        const known = t.places.find((p) => p.name === newName);
-        if (known) pid = known.id;
-        else {
-          if (t.places.length >= LIMITS.places) return err(form, `場所は${LIMITS.places}件までです`);
-          pid = uid();
-          t.places.push({ id: pid, name: newName, cat: 'その他', emoji: '', photo: '', region: '', location: '', memo: '', lat: null, lon: null, votes: {} });
-        }
+        pid = ensurePlace(t, newName);
+        if (!pid) return err(form, `場所は${LIMITS.places}件までです`);
       }
+      // 候補(選ぶ前の候補): 並べた場所と、新しく入力した名前
+      const optIds = [];
+      if (k === 'stop') {
+        const parse = (key) => { try { const v = JSON.parse(formVal(f, key) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; } };
+        for (const id of parse('options')) if (typeof id === 'string' && getPlace(t, id)) optIds.push(id);
+        for (const name of parse('newOptions')) {
+          if (typeof name !== 'string' || !name.trim()) continue;
+          const id = ensurePlace(t, name.trim().slice(0, 130));
+          if (!id) return err(form, `場所は${LIMITS.places}件までです`);
+          optIds.push(id);
+        }
+        if (pid) optIds.push(pid);
+      }
+      const options = [...new Set(optIds)].slice(0, 20);
       const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k !== 'move' ? formVal(f, 'emoji') : '', act: k === 'action' && ACTIONS.some((a) => a.id === formVal(f, 'act')) ? formVal(f, 'act') : '' };
       if (editing) {
         state.focusStop = s.id;
         Object.assign(s, obj);
-        s.options = k === 'stop' ? s.options.filter((id) => getPlace(t, id)) : [];
-        if (k === 'stop' && pid && !s.options.includes(pid)) s.options.push(pid);
+        s.options = options;
       } else {
         const newId = uid();
         state.focusStop = newId;
-        t.schedule.push({ id: newId, ...obj, options: k === 'stop' && pid ? [pid] : [], done: false });
+        t.schedule.push({ id: newId, ...obj, options, done: false });
       }
       state.activeDay = obj.day;
       state.tab = 'schedule';
@@ -266,6 +289,7 @@ export function stopForm(t, s, presetPlaceId = '') {
   form.addEventListener('change', sync);
   sync();
   setupPlacePick(t, form);
+  setupOptionsPick(t, form);
 }
 
 // 場所の検索と自由入力。候補は端末の中の「行きたい場所」だけから探す(通信しない)
@@ -313,6 +337,54 @@ function setupPlacePick(t, form) {
     else choose(b.dataset.pick);
   });
   showChip();
+}
+
+// 候補(選ぶ前の候補)の編集: 並べた場所を×で外し、検索・入力で足す
+function setupOptionsPick(t, form) {
+  const root = form.querySelector('[data-optpick]');
+  if (!root) return;
+  const idsEl = form.elements.options;
+  const namesEl = form.elements.newOptions;
+  const q = root.querySelector('#optQuery');
+  const chips = root.querySelector('[data-optchips]');
+  const box = root.querySelector('[data-optresults]');
+  let ids = JSON.parse(idsEl.value || '[]').filter((id) => getPlace(t, id));
+  let names = [];
+  const save = () => {
+    idsEl.value = JSON.stringify(ids);
+    namesEl.value = JSON.stringify(names);
+    const chip = (label, attr) => `<span class="optchip"><span>${esc(label)}</span><button type="button" ${attr} aria-label="「${esc(label)}」を候補から外す">×</button></span>`;
+    chips.innerHTML = ids.map((id) => chip(getPlace(t, id).name, `data-opt-del="${esc(id)}"`)).join('') + names.map((n, i) => chip(n + '(新しい場所)', `data-new-del="${i}"`)).join('');
+    chips.hidden = !chips.innerHTML;
+  };
+  const render = () => {
+    const text = q.value.trim().toLocaleLowerCase();
+    const list = t.places.filter((p) => !ids.includes(p.id) && (!text || [p.name, p.region, p.location, p.memo, p.cat].some((v) => String(v || '').toLocaleLowerCase().includes(text)))).slice(0, 8);
+    const exact = t.places.some((p) => p.name.toLocaleLowerCase() === text) || names.some((n) => n.toLocaleLowerCase() === text);
+    const rows = list.map((p) => `<button type="button" class="placeopt" data-opt-add="${esc(p.id)}"><span>${esc(p.name)}</span><small>${esc(p.region || p.cat)}</small></button>`);
+    if (text && !exact) rows.push(`<button type="button" class="placeopt new" data-opt-new>＋ 「${esc(q.value.trim())}」を新しい場所の候補にする</button>`);
+    box.innerHTML = rows.join('') || '<div class="small">追加できる場所はありません</div>';
+    box.hidden = false;
+  };
+  const after = () => { q.value = ''; box.hidden = true; save(); };
+  q.addEventListener('input', render);
+  q.addEventListener('focus', render);
+  q.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    box.querySelector('[data-opt-add], [data-opt-new]')?.click();
+  });
+  root.addEventListener('click', (e) => {
+    const add = e.target.closest('[data-opt-add]');
+    const neu = e.target.closest('[data-opt-new]');
+    const del = e.target.closest('[data-opt-del]');
+    const delNew = e.target.closest('[data-new-del]');
+    if (add) { ids = [...ids, add.dataset.optAdd].slice(0, 20); after(); }
+    else if (neu) { if (q.value.trim() && names.length + ids.length < 20) names = [...names, q.value.trim().slice(0, 130)]; after(); }
+    else if (del) { ids = ids.filter((id) => id !== del.dataset.optDel); save(); }
+    else if (delNew) { names = names.filter((_, i) => i !== Number(delNew.dataset.newDel)); save(); }
+  });
+  save();
 }
 
 export function dayPickForm(t, id) {
