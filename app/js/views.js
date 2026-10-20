@@ -178,7 +178,7 @@ function renderMove(t, s, nowId) {
   const mode = modeOf(s.mode);
   const times = s.endTime ? stopTimes(t.date, s.day, s.time, s.endTime) : null;
   const live = times ? `data-start="${times.start}" data-end="${times.end}"` : '';
-  const hint = !s.endTime ? '到着時刻を入れると、時間に合わせて動きます' : !t.date ? '出発日を設定すると、当日に時間に合わせて動きます' : '';
+  const hint = '';
   return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-stop="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
     <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
     <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}${s.endTime ? ' ・ ' + durationText(toMinutes(s.endTime) - toMinutes(s.time)) : ''}</div>

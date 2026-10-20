@@ -725,3 +725,16 @@ button.talk:active { transform: scale(.97); }
 .optheart b { font-size: 17px; line-height: 1.1; font-weight: 400; }
 .optheart.on b { transform: scale(1.1); }
 .optheart:active { transform: scale(.9); }
+
+/* ---- 移動の項目(案E): 時間軸の縦の線の、その区間だけを太い色の道にして、出発の丸には乗り物の絵。枠はなし ---- */
+.stop.move::before { content: attr(data-emoji); box-sizing: border-box; left: -28px; top: 16px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--base); display: grid; place-items: center; font-size: 15px; line-height: 1; z-index: 2; }
+.stop.move::after { content: ''; position: absolute; left: -19px; top: 27px; width: 6px; height: calc(100% + 15px); border-radius: 3px; background: var(--accent); opacity: .85; z-index: 1; }
+.stop.move.done::before, .stop.move.now::before { background: var(--base); box-shadow: none; width: 22px; height: 22px; left: -28px; top: 16px; }
+.stop.move .card { position: relative; background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 5px 42px 5px 10px; min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+.stop.move.now > .card { box-shadow: none; }
+.stop.move .card .spread { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+.stop.move .card .spread .cat, .stop.move .card .spread .small { display: none; }
+.stop.move .card .iconbtn { width: 34px; height: 34px; }
+.stop.move .card h3 { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--accent-ink); line-height: 1.35; }
+.stop.move .card > .small { color: var(--sub); font-size: 12px; }
+.stop.move .time { top: 17px; }
