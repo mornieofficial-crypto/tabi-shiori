@@ -727,14 +727,49 @@ button.talk:active { transform: scale(.97); }
 .optheart:active { transform: scale(.9); }
 
 /* ---- 移動の項目(案E): 時間軸の縦の線の、その区間だけを太い色の道にして、出発の丸には乗り物の絵。枠はなし ---- */
-.stop.move::before { content: attr(data-emoji); box-sizing: border-box; left: -28px; top: 16px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--base); display: grid; place-items: center; font-size: 15px; line-height: 1; z-index: 2; }
-.stop.move::after { content: ''; position: absolute; left: -19px; top: 27px; width: 6px; height: calc(100% + 15px); border-radius: 3px; background: var(--accent); opacity: .85; z-index: 1; }
-.stop.move.done::before, .stop.move.now::before { background: var(--base); box-shadow: none; width: 22px; height: 22px; left: -28px; top: 16px; }
-.stop.move .card { position: relative; background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 5px 42px 5px 10px; min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
 .stop.move.now > .card { box-shadow: none; }
-.stop.move .card .spread { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
 .stop.move .card .spread .cat, .stop.move .card .spread .small { display: none; }
 .stop.move .card .iconbtn { width: 34px; height: 34px; }
 .stop.move .card h3 { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--accent-ink); line-height: 1.35; }
 .stop.move .card > .small { color: var(--sub); font-size: 12px; }
 .stop.move .time { top: 17px; }
+
+/* ---- 移動の項目(整えた): 太い道は、丸に重ならない(出発の丸の下から、次の丸の手前まで)。乗り物の絵は、タイトルの左端。
+   1行目(タイトル)の高さを、時刻・丸と同じ高さ(上から27px)にそろえる ---- */
+.stop.move::after { content: ''; position: absolute; left: -19px; top: 36px; width: 6px; height: calc(100% - 3px); border-radius: 3px; background: var(--accent); opacity: .85; z-index: 1; }
+.stop.move::before { z-index: 2; }
+.stop.move .card { position: relative; background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 18px 42px 8px 4px; min-height: 0; display: block; }
+.stop.move.now > .card { box-shadow: none; }
+.stop.move .card .spread { position: absolute; right: 0; top: 10px; transform: none; }
+.stop.move .card h3 { display: flex; align-items: center; gap: 6px; line-height: 18px; }
+.stop.move .moveemoji { flex: none; font-size: 16px; line-height: 18px; }
+/* 予定(行動)も、1行目を、時刻・丸と同じ高さにそろえる */
+.stop.action .card.actioncard { align-items: flex-start; padding-top: 12px; padding-bottom: 8px; }
+.stop.action .actioncard .fillspace { padding-top: 5px; }
+.stop.action .actioncard .iconbtn { align-self: flex-start; margin-top: -2px; width: 34px; height: 34px; }
+
+/* ---- 吹き出しのしっぽ: ひし形をやめ、小さな丸(大小2つ)に ---- */
+.talk::before { left: -9px; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; transform: none; }
+.talk::after { content: ''; position: absolute; left: -15px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: inherit; }
+.talk.hint::after { display: none; }
+/* ひとこと: 入力した言葉だけ、細い字で */
+.talk.note b { font-weight: 400; }
+
+/* 候補を選ぶ: 矢印は文字のすぐ横。ナビ開始は、同じ行の右。 */
+.optbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.optbar .optsummary { width: auto; flex: 0 1 auto; justify-content: flex-start; gap: 2px; padding: 4px 2px; min-height: 36px; }
+.optbar .navbtn { flex: none; margin-left: auto; }
+.optbar + .optrow { margin-top: 4px; }
+
+/* 参加者が3人以上のときは、予定の中の候補の行に、希望のハートは出さない */
+.optvotes[hidden] { display: none; }
+/* 詳細の画面の希望は、タップで押せるボタン */
+button.votepill { font: inherit; cursor: pointer; min-height: 40px; -webkit-tap-highlight-color: transparent; }
+button.votepill:active { transform: scale(.95); }
+
+/* 予定の編集ボタン: 小さく・枠なし・薄い色(目立たせない) */
+.stop .iconbtn[data-action="edit-stop"], .stop.move .card .iconbtn, .stop.action .actioncard .iconbtn { width: 32px; height: 32px; background: none; box-shadow: none; border: 0; color: #b0b9b5; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.stop .iconbtn[data-action="edit-stop"] svg, .stop .iconbtn[data-action="edit-stop"] .ico { width: 16px; height: 16px; stroke-width: 1.8; }
+.stop .iconbtn[data-action="edit-stop"]:active { background: var(--tint); color: var(--accent-ink); }
+.stop.move .card .spread { top: 11px; }
+.stop.action .actioncard .iconbtn { margin-top: -1px; }

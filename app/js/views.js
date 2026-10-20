@@ -104,7 +104,7 @@ export function talkHtml(t, now = new Date()) {
   const cd = countdownBubble(t, now);
   const showNote = note && (!cd || Math.floor(+now / TALK_SWAP_MS) % 2 === 1);
   const attr = `type="button" data-action="edit-daynote" data-noteday="${day}"`;
-  if (showNote) return `<button class="talk note" ${attr} aria-label="${day}日目のひとこと: ${esc(note)}"><small>${day}日目</small><b>${esc(note)}</b></button>`;
+  if (showNote) return `<button class="talk note" ${attr} aria-label="${day}日目のひとこと: ${esc(note)}"><b>${esc(note)}</b></button>`;
   if (cd) return `<button class="talk" ${attr} aria-label="${esc(cd.pre + cd.big)}。${day}日目のひとことを入れる"><small>${esc(cd.pre)}</small><b>${esc(cd.big)}</b></button>`;
   return `<button class="talk hint" ${attr}><b>＋ ${day}日目のひとこと</b></button>`;
 }
@@ -181,7 +181,7 @@ function renderMove(t, s, nowId) {
   const hint = '';
   return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-stop="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
     <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
-    <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}${s.endTime ? ' ・ ' + durationText(toMinutes(s.endTime) - toMinutes(s.time)) : ''}</div>
+    <h3><span class="moveemoji" aria-hidden="true">${esc(mode.emoji)}</span>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}${s.endTime ? ' ・ ' + durationText(toMinutes(s.endTime) - toMinutes(s.time)) : ''}</div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
     ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}</div></div>`;
 }
@@ -189,11 +189,13 @@ function renderMove(t, s, nowId) {
 function renderPlaceStop(t, s, nowId) {
   const p = getPlace(t, s.placeId);
   const opts = s.options.map((id) => getPlace(t, id)).filter(Boolean);
+  const navBtn = p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : '';
+  const hasOpts = opts.length > 1 || (opts.length === 1 && !s.placeId);
   return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" data-stop="${esc(s.id)}"><div class="time">${esc(s.time)}</div><div class="card"><div class="stophead"><div class="stopmain" ${p ? `role="button" tabindex="0" data-action="place-detail" data-id="${esc(p.id)}" aria-label="${esc(p.name)}の詳細を見る"` : ''}>${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? (p.photo || p.emoji || !s.cat ? thumb(p) : `<span class="emoji">${esc(catEmoji(s.cat))}</span>`) : '<span class="emoji">📍</span>'}<div class="fillspace"><div class="stopline1">${p ? catChip(s.cat || p.cat, s.cat || p.cat) : `<span class="cat pending">場所は未定</span>`}${p && (p.region || p.location) ? `<span class="stoparea1">${ICON.pin} ${esc(p.region || p.location)}</span>` : ''}${s.optional ? '<span class="optnote">時間があれば</span>' : ''}</div><div class="stopline2"><span class="tripname">${esc(p ? p.name : s.title)}</span></div></div></div>${penBtn('edit-stop', s.id, '予定を編集')}</div>
   ${p && ((p.region && p.location) || p.memo) ? `<div class="stopextra">${p.region && p.location ? `<div class="small stoparea">${esc(p.location)}</div>` : ''}${p.memo ? `<p class="memo stopmemo">${esc(p.memo)}</p>` : ''}</div>` : ''}
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><button class="optsummary" data-action="toggle-options" data-id="${esc(s.id)}" aria-expanded="${optionsOpen(s)}"><span>候補を選ぶ(${opts.length})</span><span class="chevd ${optionsOpen(s) ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button>${!optionsOpen(s) ? '' : opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><span class="optvotes">${t.members.map((m) => { const on = !!o.votes[m.id]; const c = badgeColors(m.color); return `<button type="button" class="optheart ${on ? 'on' : ''}" ${on ? `style="color:${c.ink}"` : ''} data-action="vote" data-id="${esc(o.id)}" data-member="${esc(m.id)}" aria-pressed="${on}" aria-label="${esc(m.name)}の希望"><i>${esc(m.emoji)}</i><b>${on ? '♥' : '♡'}</b></button>`; }).join('')}</span><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}` : ''}
-  <div class="place-actions">${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
+  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="optbar"><button class="optsummary" data-action="toggle-options" data-id="${esc(s.id)}" aria-expanded="${optionsOpen(s)}"><span>候補を選ぶ(${opts.length})</span><span class="chevd ${optionsOpen(s) ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button>${navBtn}</div>${!optionsOpen(s) ? '' : opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><span class="optvotes" ${t.members.length > 2 ? 'hidden' : ''}>${t.members.map((m) => { const on = !!o.votes[m.id]; const c = badgeColors(m.color); return `<button type="button" class="optheart ${on ? 'on' : ''}" ${on ? `style="color:${c.ink}"` : ''} data-action="vote" data-id="${esc(o.id)}" data-member="${esc(m.id)}" aria-pressed="${on}" aria-label="${esc(m.name)}の希望"><i>${esc(m.emoji)}</i><b>${on ? '♥' : '♡'}</b></button>`; }).join('')}</span><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}` : ''}
+  ${hasOpts ? '' : `<div class="place-actions">${navBtn}</div>`}</div></div>`;
 }
 
 // 検索結果の一覧(件数+カード)。文字を入力している間は、入力欄を作り直さず、ここだけを入れ替える

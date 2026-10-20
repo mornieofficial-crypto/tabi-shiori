@@ -427,6 +427,14 @@ document.addEventListener('click', (e) => {
       if (p.votes[mid]) delete p.votes[mid];
       else p.votes[mid] = true;
       touch(t);
+      if (b.closest('.votepills')) {
+        // 詳細の画面の中で押したときは、その場で、見た目を入れ替える
+        const on = !!p.votes[mid];
+        const m = t.members.find((x) => x.id === mid);
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', String(on));
+        b.textContent = `${on ? '♥' : '♡'} ${m.emoji} ${m.name}`;
+      }
       return render();
     }
     case 'add-place-to-day': return dayPickForm(t, id);

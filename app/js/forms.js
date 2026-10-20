@@ -627,7 +627,7 @@ export function themeForm(t) {
 export function placeDetail(t, p) {
   const n = navTargets(p);
   const row = (label, value) => (value ? `<div class="detailrow"><div class="small">${esc(label)}</div><div>${value}</div></div>` : '');
-  const votes = t.members.map((m) => `<span class="votepill ${p.votes[m.id] ? 'on' : ''}">${p.votes[m.id] ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</span>`).join('');
+  const votes = t.members.map((m) => `<button type="button" class="votepill ${p.votes[m.id] ? 'on' : ''}" data-action="vote" data-id="${esc(p.id)}" data-member="${esc(m.id)}" aria-pressed="${!!p.votes[m.id]}">${p.votes[m.id] ? '♥' : '♡'} ${esc(m.emoji)} ${esc(m.name)}</button>`).join('');
   openModal(`<h2>${esc(p.name)}</h2>
   ${p.photo ? `<div class="detailphoto" style="background-image:url('${p.photo}')" role="img" aria-label="${esc(p.name)}の写真"></div>` : ''}
   <div class="detailbody">
