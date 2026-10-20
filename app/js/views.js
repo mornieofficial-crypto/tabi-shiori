@@ -182,7 +182,7 @@ function renderMove(t, s, nowId) {
   const hint = '';
   return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-stop="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
     <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
-    <h3><span class="moveemoji" aria-hidden="true">${esc(mode.emoji)}</span>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}${s.endTime ? ' ・ ' + durationText(toMinutes(s.endTime) - toMinutes(s.time)) : ''}</div>
+    <h3><span class="moveemoji" aria-hidden="true">${esc(mode.emoji)}</span>${esc(s.title)}</h3><div class="small">${s.endTime ? `<b class="movedur">${esc(durationText(toMinutes(s.endTime) - toMinutes(s.time)))}</b> ・ ` : ''}${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}</div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
     ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}</div></div>`;
 }

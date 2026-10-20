@@ -736,7 +736,7 @@ button.talk:active { transform: scale(.97); }
 
 /* ---- 移動の項目(整えた): 太い道は、丸に重ならない(出発の丸の下から、次の丸の手前まで)。乗り物の絵は、タイトルの左端。
    1行目(タイトル)の高さを、時刻・丸と同じ高さ(上から27px)にそろえる ---- */
-.stop.move::after { content: ''; position: absolute; left: -19px; top: 36px; width: 6px; height: calc(100% - 3px); border-radius: 3px; background: var(--accent); opacity: .85; z-index: 1; }
+.stop.move::after { content: ''; position: absolute; left: -20px; top: 36px; width: 6px; height: calc(100% - 3px); border-radius: 3px; background: var(--accent); opacity: .85; z-index: 1; }
 .stop.move::before { z-index: 2; }
 .stop.move .card { position: relative; background: none; border: 0; border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 18px 42px 8px 4px; min-height: 0; display: block; }
 .stop.move.now > .card { box-shadow: none; }
@@ -778,3 +778,18 @@ button.votepill:active { transform: scale(.95); }
 .avatar.photo { background-color: transparent; background-repeat: no-repeat; background-position: center bottom; background-size: contain; border-color: transparent; box-shadow: none; width: 34px; height: 34px; }
 .tripheader .avatar.photo { box-shadow: none; filter: drop-shadow(0 1px 2px rgba(10, 20, 60, .25)); }
 .thumb.cutout { background-color: #fff; background-image: linear-gradient(45deg, #e8ecf0 25%, transparent 25%, transparent 75%, #e8ecf0 75%), linear-gradient(45deg, #e8ecf0 25%, transparent 25%, transparent 75%, #e8ecf0 75%); background-size: 12px 12px; background-position: 0 0, 6px 6px; }
+
+/* 吹き出しのしっぽ: 丸の間隔を詰めて右に寄せ、アイコンに重ならないようにする */
+.tripinfo { gap: 16px; }
+.talk::before { left: -7px; }
+.talk::after { left: -12px; }
+
+/* 予定の項目は、時刻(と丸)より、少し下から始める(題名が、時刻より上に出ない) */
+.stop { padding-top: 17px; }
+
+/* 枠の上端は、時刻の文字の上端(17px)と同じ高さ。そのぶん、枠の中の上の余白は小さくして、文字の高さは変えない */
+.stop > .card { padding-top: 7px; }
+.stop.move .card { padding-top: 9px; }
+.stop.move .card .spread { top: 2px; }
+.stop.action .card.actioncard { padding-top: 3px; }
+.stop.move .movedur { font-weight: 800; color: var(--accent-ink); }
