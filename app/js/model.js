@@ -90,7 +90,7 @@ function normalizePlace(raw, memberIds, used, allowedCats = new Set(CATS)) {
   };
 }
 
-function normalizeStop(raw, days, placeIds, used) {
+function normalizeStop(raw, days, placeIds, used, allowedCats = new Set(CATS)) {
   const s = raw && typeof raw === 'object' ? raw : {};
   const kind = s.kind === 'move' ? 'move' : s.kind === 'action' ? 'action' : 'stop';
   const act = ACTION_IDS.has(s.act) ? s.act : 'other';
@@ -106,6 +106,8 @@ function normalizeStop(raw, days, placeIds, used) {
     endTime: isTimeStr(s.endTime) && s.endTime > time ? s.endTime : '',
     title: str(s.title, 100).trim() || (kind === 'move' ? '移動' : kind === 'action' ? ACTIONS.find((a) => a.id === act).label : '立ち寄り'),
     act: kind === 'action' ? act : '',
+    // 予定ごとのジャンル(空なら、場所のジャンルに合わせる。ホテルで朝食、など)
+    cat: kind === 'stop' && allowedCats.has(s.cat) ? s.cat : '',
     placeId: kind === 'move' ? '' : placeId,
     options: kind === 'stop' ? options : [],
     note: str(s.note, 500),
@@ -159,7 +161,7 @@ export function normalizeTrip(raw) {
   const placeIds = new Set(places.map((p) => p.id));
 
   const usedS = new Set();
-  const schedule = (Array.isArray(t.schedule) ? t.schedule : []).slice(0, LIMITS.schedule).map((s) => normalizeStop(s, days, placeIds, usedS));
+  const schedule = (Array.isArray(t.schedule) ? t.schedule : []).slice(0, LIMITS.schedule).map((s) => normalizeStop(s, days, placeIds, usedS, genreNames));
 
   const usedC = new Set();
   const checklist = (Array.isArray(t.checklist) ? t.checklist : []).slice(0, LIMITS.checklist).map((c) => ({

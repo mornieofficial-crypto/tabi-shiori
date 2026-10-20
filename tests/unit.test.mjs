@@ -283,3 +283,18 @@ test('予定の「行動」(チェックインなど): 種類が残り、場所�
   assert.equal(c.act, '');
   assert.deepEqual(c.options, ['h']);
 });
+
+test('予定ごとのジャンル: 場所のジャンルと違うジャンル(ホテルで朝食)を持てる。知らないジャンルは空(=場所と同じ)', () => {
+  const t = normalizeTrip({ days: 1, genres: [{ id: 'g1', name: '温泉', emoji: '♨️' }], places: [{ id: 'h', name: 'ホテル', cat: '宿泊' }], schedule: [
+    { id: 'a', kind: 'stop', placeId: 'h', cat: '食事', time: '08:00' },
+    { id: 'b', kind: 'stop', placeId: 'h', cat: '温泉', time: '09:00' },
+    { id: 'c', kind: 'stop', placeId: 'h', cat: 'ぞんざい', time: '10:00' },
+    { id: 'd', kind: 'move', cat: '食事', time: '11:00' },
+  ] });
+  const [a, b, c, d] = t.schedule;
+  assert.equal(a.cat, '食事');
+  assert.equal(b.cat, '温泉');
+  assert.equal(c.cat, '');
+  assert.equal(d.cat, '');
+  assert.equal(t.places[0].cat, '宿泊');
+});

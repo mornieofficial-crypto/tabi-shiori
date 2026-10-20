@@ -1,5 +1,5 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
-import { renderScreen, renderNavInner, optionsOpen } from './views.js';
+import { renderScreen, renderNavInner, optionsOpen, placeListHtml } from './views.js';
 import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, genreEditForm, placeDetail } from './forms.js';
 import { closeModal, modalOpen, scrollLocked, modalHooks, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
 import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, inviteFile, parseInviteData, normalizeRelay, parseSyncLink, links } from './sync.js';
@@ -592,14 +592,11 @@ document.addEventListener('input', (e) => {
     if (c) c.textContent = `${t.notes.length}/5000`;
   }
   if (e.target.id === 'placeSearch') {
-    const pos = e.target.selectionStart;
-    const y = scrollY;
+    // 入力欄は作り直さず、結果の一覧だけを入れ替える(日本語の変換中に、文字が二重になるのを防ぐ)
     state.search = e.target.value;
-    render();
-    const next = $('placeSearch');
-    next.focus();
-    next.setSelectionRange(pos, pos);
-    scrollTo(0, y);
+    const t = current();
+    const box = $('placeList');
+    if (t && box) box.innerHTML = placeListHtml(t);
   }
 });
 

@@ -226,6 +226,7 @@ export function stopForm(t, s, presetPlaceId = '') {
     <div class="optchips" data-optchips></div>
     <input id="optQuery" class="field" type="search" placeholder="候補に追加する場所を検索、または入力" autocomplete="off" enterkeyhint="search" maxlength="130">
     <div class="placeresults" data-optresults hidden></div></div>
+    <div class="formitem" data-for="stop"><label for="stopCat">ジャンル</label><select id="stopCat" class="field" name="cat"><option value="">場所と同じ</option>${[...CATS, ...t.genres.map((g) => g.name)].map((c) => `<option value="${esc(c)}" ${s?.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></div>
     <div class="formitem" data-for="stop action"><label>マーク</label>${emojiField('emoji', s?.emoji || '', { allowEmpty: true, label: 'マーク' })}</div>
     ${item('補足メモ', `<textarea class="field" name="note" maxlength="500">${esc(s?.note || '')}</textarea>`)}
     <label class="check inline"><input type="checkbox" name="optional" ${s?.optional ? 'checked' : ''}><span>時間があれば行く</span></label>
@@ -260,7 +261,7 @@ export function stopForm(t, s, presetPlaceId = '') {
         if (pid) optIds.push(pid);
       }
       const options = [...new Set(optIds)].slice(0, 20);
-      const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k !== 'move' ? formVal(f, 'emoji') : '', act: k === 'action' && ACTIONS.some((a) => a.id === formVal(f, 'act')) ? formVal(f, 'act') : '' };
+      const obj = { kind: k, day: formInt(f, 'day', 1, t.days, 1), time, endTime, title, note: formVal(f, 'note'), optional: !!f.get('optional'), mode: MODES.some((m) => m.id === formVal(f, 'mode')) ? formVal(f, 'mode') : 'car', placeId: pid, emoji: k !== 'move' ? formVal(f, 'emoji') : '', cat: k === 'stop' && (CATS.includes(formVal(f, 'cat')) || t.genres.some((g) => g.name === formVal(f, 'cat'))) ? formVal(f, 'cat') : '', act: k === 'action' && ACTIONS.some((a) => a.id === formVal(f, 'act')) ? formVal(f, 'act') : '' };
       if (editing) {
         state.focusStop = s.id;
         Object.assign(s, obj);
