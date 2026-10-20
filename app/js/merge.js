@@ -3,7 +3,7 @@
 // 誕生日・写真は端末の外に出さない(送らない・相手の内容で消さない)。
 import { normalizeTrip } from './model.js';
 
-const SCALARS = ['name', 'destination', 'date', 'days', 'theme', 'notes', 'background', 'catEmoji'];
+const SCALARS = ['name', 'destination', 'date', 'days', 'theme', 'notes', 'background', 'catEmoji', 'dayNotes'];
 const COLLS = ['members', 'genres', 'places', 'schedule', 'checklist', 'bookings'];
 // 端末の中にだけ置く項目
 const LOCAL_ONLY = { members: ['birthday', 'colorAuto'], places: ['photo'] };

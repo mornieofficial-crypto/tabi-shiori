@@ -3,7 +3,7 @@ import { esc } from './util.js';
 import { CATS, CAT_EMOJI, ACTIONS, COUPLE } from './model.js';
 import { state, current, getPlace, getMember } from './state.js';
 import { badgeColors, PRESET_COLORS } from './color.js';
-import { modeOf, stopTimes, dayStart } from './transit.js';
+import { modeOf, stopTimes, dayStart, toMinutes, durationText } from './transit.js';
 import { backgroundLabel } from './backgrounds.js';
 import { ICON } from './icons.js';
 import { links } from './sync.js';
@@ -18,7 +18,6 @@ const penBtn = (action, id, label) => `<button class="iconbtn" data-action="${ac
 const TRASH = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
 const trashBtn = (action, id, label) => `<button class="iconbtn danger" data-action="${action}" data-id="${esc(id)}" aria-label="${esc(label)}">${TRASH}</button>`;
 // 「行った」「済み」のマークは足跡
-const visitBtn = (id, on, label) => `<button class="iconbtn visit ${on ? 'on' : ''}" data-action="visit" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.foot}</button>`;
 const checkBtn = (action, id, on, label) => `<button class="iconbtn tick ${on ? 'on' : ''}" data-action="${action}" data-id="${esc(id)}" aria-pressed="${on}" aria-label="${esc(label)}">${ICON.check}</button>`;
 
 export { placeEmoji };
@@ -85,13 +84,38 @@ export function renderNavInner() {
   return `<span class="navglass" aria-hidden="true"></span>${TABS.map(([k, i, n]) => `<button data-tab="${k}" class="${state.tab === k ? 'active' : ''}" ${state.tab === k ? 'aria-current="page"' : ''}><span class="icon">${i}</span>${n}</button>`).join('')}`;
 }
 
+// ふたりの吹き出しに出す、出発までの言葉(日付が決まっていないときは、出さない)
+export function countdownBubble(t, now = new Date()) {
+  const d0 = dayStart(t.date, 1);
+  if (!d0) return null;
+  const n = Math.round((new Date(now).setHours(0, 0, 0, 0) - +d0) / 86400000); // 0 = 出発の日
+  if (n < -1) return { pre: '出発まで', big: `あと${-n}日` };
+  if (n === -1) return { pre: '', big: 'いよいよ明日!' };
+  if (n === 0) return { pre: '', big: '今日、出発!' };
+  if (n < t.days) return { pre: '', big: `旅行${n + 1}日目` };
+  return { pre: '', big: 'おつかれさま!' };
+}
+
+// 吹き出しは、数分ごとに「出発までの言葉」と「その日のひとこと」を、交互に出す(どちらかしかないときは、それだけ)
+export const TALK_SWAP_MS = 3 * 60 * 1000;
+export function talkHtml(t, now = new Date()) {
+  const day = state.activeDay;
+  const note = t.dayNotes?.[day] || '';
+  const cd = countdownBubble(t, now);
+  const showNote = note && (!cd || Math.floor(+now / TALK_SWAP_MS) % 2 === 1);
+  const attr = `type="button" data-action="edit-daynote" data-noteday="${day}"`;
+  if (showNote) return `<button class="talk note" ${attr} aria-label="${day}日目のひとこと: ${esc(note)}"><small>${day}日目</small><b>${esc(note)}</b></button>`;
+  if (cd) return `<button class="talk" ${attr} aria-label="${esc(cd.pre + cd.big)}。${day}日目のひとことを入れる"><small>${esc(cd.pre)}</small><b>${esc(cd.big)}</b></button>`;
+  return `<button class="talk hint" ${attr}><b>＋ ${day}日目のひとこと</b></button>`;
+}
+
 // 旅行の中の上部(スクロールしても上に固定): 左上に旅行一覧、中央にしおり名と行き先、右上に旅行の設定。
 // その下に、行く人のアイコン(左端)と期間。下へスクロールすると、この下の段は畳まれて小さくなる。
 // 予定のページでは、日にちのタブも、同じ固定の中に入れる
 function tripTop(t, extra = '') {
   const avatars = t.members.map(avatar).join('');
   return `<div class="tripheader"><div class="tripbar"><div class="barleft"><button class="iconbtn barlist" data-action="go-list" aria-label="旅行の一覧へ">${ICON.note}</button><div class="avatars baravatars" aria-label="参加メンバー">${avatars}</div></div><div class="tripheading"><div class="triptitle">${esc(t.name)}</div><div class="tripplace">${ICON.pin} ${esc(t.destination || '行き先を決めよう')}</div></div><button class="iconbtn barsettings" data-action="open-trip-settings" aria-label="この旅行の設定">${ICON.sliders}</button></div>
-  <div class="tripinfo"><div class="avatars">${avatars}</div></div>${extra}</div>`;
+  <div class="tripinfo"><div class="avatars">${avatars}</div>${talkHtml(t)}</div>${extra}</div>`;
 }
 
 export function renderScreen(t) {
@@ -147,7 +171,7 @@ function renderAction(t, s, nowId) {
   const a = ACTIONS.find((x) => x.id === s.act) || ACTIONS[ACTIONS.length - 1];
   const p = getPlace(t, s.placeId);
   const sub = [p ? `${ICON.pin} ${esc(p.name)}` : '', s.note ? esc(s.note) : ''].filter(Boolean).join(' ・ ');
-  return `<div class="stop action ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" data-stop="${esc(s.id)}"><div class="time">${esc(s.time)}</div><div class="card actioncard"><span class="emoji">${esc(s.emoji || a.emoji)}</span><div class="fillspace"><div class="tripname">${esc(s.title)}</div>${sub ? `<div class="small stopline2">${sub}</div>` : ''}</div>${visitBtn(s.id, s.done, '済み')}${penBtn('edit-stop', s.id, '予定を編集')}</div></div>`;
+  return `<div class="stop action ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" data-stop="${esc(s.id)}"><div class="time">${esc(s.time)}</div><div class="card actioncard"><span class="emoji">${esc(s.emoji || a.emoji)}</span><div class="fillspace"><div class="tripname">${esc(s.title)}</div>${sub ? `<div class="small stopline2">${sub}</div>` : ''}</div>${penBtn('edit-stop', s.id, '予定を編集')}</div></div>`;
 }
 
 function renderMove(t, s, nowId) {
@@ -157,10 +181,9 @@ function renderMove(t, s, nowId) {
   const hint = !s.endTime ? '到着時刻を入れると、時間に合わせて動きます' : !t.date ? '出発日を設定すると、当日に時間に合わせて動きます' : '';
   return `<div class="stop move ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" ${live} data-id="${esc(s.id)}" data-stop="${esc(s.id)}" data-emoji="${esc(mode.emoji)}"><div class="time">${esc(s.time)}</div><div class="card">
     <div class="spread">${catChip(mode.emoji + ' ' + mode.label, 'move')}<span class="small">${s.optional ? '時間があれば　' : ''}</span>${penBtn('edit-stop', s.id, '予定を編集')}</div>
-    <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}</div>
+    <h3>${esc(s.title)}</h3><div class="small">${esc(s.time)}${s.endTime ? ' → ' + esc(s.endTime) : ''}${s.endTime ? ' ・ ' + durationText(toMinutes(s.endTime) - toMinutes(s.time)) : ''}</div>
     <div class="small trackstatus" data-status="${esc(s.id)}" aria-live="off">${esc(hint)}</div>
-    ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-    <div class="place-actions">${visitBtn(s.id, s.done, '済み')}</div></div></div>`;
+    ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}</div></div>`;
 }
 
 function renderPlaceStop(t, s, nowId) {
@@ -169,8 +192,8 @@ function renderPlaceStop(t, s, nowId) {
   return `<div class="stop ${s.done ? 'done' : ''} ${nowId === s.id ? 'now' : ''}" data-stop="${esc(s.id)}"><div class="time">${esc(s.time)}</div><div class="card"><div class="stophead"><div class="stopmain" ${p ? `role="button" tabindex="0" data-action="place-detail" data-id="${esc(p.id)}" aria-label="${esc(p.name)}の詳細を見る"` : ''}>${s.emoji ? `<span class="emoji">${esc(s.emoji)}</span>` : p ? (p.photo || p.emoji || !s.cat ? thumb(p) : `<span class="emoji">${esc(catEmoji(s.cat))}</span>`) : '<span class="emoji">📍</span>'}<div class="fillspace"><div class="stopline1">${p ? catChip(s.cat || p.cat, s.cat || p.cat) : `<span class="cat pending">場所は未定</span>`}${p && (p.region || p.location) ? `<span class="stoparea1">${ICON.pin} ${esc(p.region || p.location)}</span>` : ''}${s.optional ? '<span class="optnote">時間があれば</span>' : ''}</div><div class="stopline2"><span class="tripname">${esc(p ? p.name : s.title)}</span></div></div></div>${penBtn('edit-stop', s.id, '予定を編集')}</div>
   ${p && ((p.region && p.location) || p.memo) ? `<div class="stopextra">${p.region && p.location ? `<div class="small stoparea">${esc(p.location)}</div>` : ''}${p.memo ? `<p class="memo stopmemo">${esc(p.memo)}</p>` : ''}</div>` : ''}
   ${s.note ? `<p class="small">${esc(s.note)}</p>` : ''}
-  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><button class="optsummary" data-action="toggle-options" data-id="${esc(s.id)}" aria-expanded="${optionsOpen(s)}"><span>候補を選ぶ(${opts.length})</span><span class="chevd ${optionsOpen(s) ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button>${!optionsOpen(s) ? '' : opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}` : ''}
-  <div class="place-actions">${visitBtn(s.id, s.done, '行った')}${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
+  ${opts.length > 1 || (opts.length === 1 && !s.placeId) ? `<div class="divider"></div><button class="optsummary" data-action="toggle-options" data-id="${esc(s.id)}" aria-expanded="${optionsOpen(s)}"><span>候補を選ぶ(${opts.length})</span><span class="chevd ${optionsOpen(s) ? 'open' : ''}" aria-hidden="true">${ICON.down}</span></button>${!optionsOpen(s) ? '' : opts.map((o) => `<div class="optrow"><button class="optname" data-action="place-detail" data-id="${esc(o.id)}" aria-label="${esc(o.name)}の詳細を見る"><span>${esc(o.name)}</span><span class="chev" aria-hidden="true">›</span></button><span class="optvotes">${t.members.map((m) => { const on = !!o.votes[m.id]; const c = badgeColors(m.color); return `<button type="button" class="optheart ${on ? 'on' : ''}" ${on ? `style="color:${c.ink}"` : ''} data-action="vote" data-id="${esc(o.id)}" data-member="${esc(m.id)}" aria-pressed="${on}" aria-label="${esc(m.name)}の希望"><i>${esc(m.emoji)}</i><b>${on ? '♥' : '♡'}</b></button>`; }).join('')}</span><button class="optchoose ${s.placeId === o.id ? 'on' : ''}" data-action="choose" data-slot="${esc(s.id)}" data-place="${esc(o.id)}" aria-pressed="${s.placeId === o.id}">${s.placeId === o.id ? '✓ 決定中' : '選ぶ'}</button></div>`).join('')}` : ''}
+  <div class="place-actions">${p ? `<button class="btn tiny primary navbtn" data-action="nav" data-id="${esc(p.id)}">${ICON.navigate} ナビ開始</button>` : ''}</div></div></div>`;
 }
 
 // 検索結果の一覧(件数+カード)。文字を入力している間は、入力欄を作り直さず、ここだけを入れ替える

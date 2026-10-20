@@ -298,3 +298,19 @@ test('予定ごとのジャンル: 場所のジャンルと違うジャンル(�
   assert.equal(d.cat, '');
   assert.equal(t.places[0].cat, '宿泊');
 });
+
+test('日ごとのひとこと: 1〜N日目だけ残り、30文字までで、空は消える', () => {
+  const t = normalizeTrip({ days: 2, dayNotes: { 1: '  今日は燕三条エリア  ', 2: '', 3: '範囲外', x: 'ぞんざい' } });
+  assert.deepEqual(t.dayNotes, { 1: '今日は燕三条エリア' });
+  assert.equal(normalizeTrip({ days: 1, dayNotes: { 1: 'あ'.repeat(50) } }).dayNotes[1].length, 30);
+});
+
+test('所要時間: 分 → 時刻・言い方', async () => {
+  const { fromMinutes, durationText } = await import('../app/js/transit.js');
+  assert.equal(fromMinutes(13 * 60 + 30), '13:30');
+  assert.equal(fromMinutes(2000), '23:59');
+  assert.equal(durationText(30), '30分');
+  assert.equal(durationText(90), '1時間30分');
+  assert.equal(durationText(120), '2時間');
+  assert.equal(durationText(0), '');
+});

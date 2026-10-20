@@ -688,3 +688,40 @@ body.scrolled .tripinfo { padding-top: 0; padding-bottom: 0; }
 body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); background: var(--accent-ink); z-index: 40; pointer-events: none; }
 body[data-view="list"] .wrap { padding-top: calc(16px + env(safe-area-inset-top)); }
 .tripheader { background: linear-gradient(180deg, var(--accent-ink), color-mix(in srgb, var(--accent-ink) 80%, #ffffff)); }
+
+/* ---- ふたりのアイコンの、おしゃべりの吹き出し(出発まであと何日) ---- */
+.tripinfo { gap: 12px; }
+.tripinfo .avatars { flex: none; }
+.tripinfo .avatars .avatar + .avatar { margin-left: -4px; }
+.talk { position: relative; display: inline-flex; align-items: baseline; gap: 5px; max-width: 70%; padding: 5px 13px; border-radius: 16px; background: rgba(255, 255, 255, .96); color: var(--ink); box-shadow: 0 2px 8px rgba(10, 20, 60, .18); animation: talkbob 3.2s ease-in-out infinite alternate; }
+.talk::before { content: ''; position: absolute; left: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px; background: inherit; border-radius: 3px; transform: rotate(45deg); }
+.talk small { font-size: 11px; color: var(--sub); font-weight: 600; white-space: nowrap; }
+.talk b { font-size: 14.5px; font-weight: 800; color: var(--accent-ink); white-space: nowrap; letter-spacing: .01em; }
+@keyframes talkbob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .talk { animation: none; } }
+
+/* 吹き出しはボタン(タップで、その日のひとことを入力)。ひとこと未入力のときは、うすい枠 */
+button.talk { border: 0; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; text-align: left; }
+button.talk:active { transform: scale(.97); }
+.talk.note b { color: var(--ink); }
+.talk.note small { color: var(--accent-ink); font-weight: 800; }
+.talk.hint { background: rgba(255, 255, 255, .16); box-shadow: none; border: 1px dashed rgba(255, 255, 255, .6); animation: none; }
+.talk.hint b { color: rgba(255, 255, 255, .92); font-weight: 600; font-size: 12.5px; }
+.talk.hint::before { display: none; }
+.place-actions:empty { display: none; }
+
+/* 予定の編集: 種類(スポット・移動・行動)は横一列。移動手段は、マークだけ */
+.kindseg { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.kindseg label { gap: 5px; padding: 9px 4px; min-height: 42px; font-size: 13px; white-space: nowrap; }
+.kindseg label .ico { width: 16px; height: 16px; flex: none; }
+.modes.emojionly { flex-wrap: nowrap; gap: 4px; }
+.modes.emojionly .modepill { flex: 1 1 0; min-width: 0; }
+.modes.emojionly .modepill span { width: 100%; padding: 0; min-height: 42px; font-size: 20px; border-radius: 12px; }
+
+/* 候補の行に、ふたりの希望(ハート) */
+.optvotes { flex: none; display: flex; gap: 2px; }
+.optheart { display: grid; justify-items: center; align-content: center; width: 34px; min-height: 40px; padding: 0; border: 0; background: none; color: #9aa6a0; -webkit-tap-highlight-color: transparent; }
+.optheart i { font-style: normal; font-size: 13px; line-height: 1.1; }
+.optheart b { font-size: 17px; line-height: 1.1; font-weight: 400; }
+.optheart.on b { transform: scale(1.1); }
+.optheart:active { transform: scale(.9); }

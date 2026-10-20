@@ -20,6 +20,20 @@ export function toMinutes(t) {
   return isTimeStr(t) ? +t.slice(0, 2) * 60 + +t.slice(3) : null;
 }
 
+// 分 → "HH:MM"(0:00〜23:59 に収める)
+export function fromMinutes(m) {
+  const n = Math.max(0, Math.min(1439, Math.round(m)));
+  return String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
+}
+
+// 所要時間の言い方(90 → 1時間30分、30 → 30分)
+export function durationText(min) {
+  if (!Number.isFinite(min) || min <= 0) return '';
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return h ? (m ? `${h}時間${m}分` : `${h}時間`) : `${m}分`;
+}
+
 // 旅行 N 日目の 0:00(端末のローカル時刻)。日付未設定なら null
 export function dayStart(dateStr, day) {
   if (!isDateStr(dateStr)) return null;

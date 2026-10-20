@@ -3,7 +3,7 @@ import { esc, uid, isDateStr, isTimeStr } from './util.js';
 import { CATS, CAT_EMOJI, ACTIONS, LIMITS, COUPLE, newTrip, normalizeMember } from './model.js';
 import { state, hooks, touch, addTrip, getPlace, getMember, saveSettings } from './state.js';
 import { birthdayColor, isHex } from './color.js';
-import { MODES } from './transit.js';
+import { MODES, toMinutes, fromMinutes } from './transit.js';
 import { navTargets } from './nav.js';
 import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
 import { avatar, placeEmoji } from './views.js';
@@ -210,12 +210,12 @@ export function stopForm(t, s, presetPlaceId = '') {
   const kind = s?.kind || 'stop';
   openModal(
     `<form id="modalForm"><h2>${editing ? '予定を編集' : `${state.activeDay}日目に予定を追加`}</h2><div class="formgrid">
-    <div class="segment" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>${ICON.pin} 立ち寄り・食事</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>${ICON.navigate} 移動</label><label><input type="radio" name="kind" value="action" ${kind === 'action' ? 'checked' : ''}>${ICON.check} 行動</label></div>
+    <div class="segment kindseg" role="radiogroup" aria-label="種類"><label><input type="radio" name="kind" value="stop" ${kind === 'stop' ? 'checked' : ''}>${ICON.pin} スポット</label><label><input type="radio" name="kind" value="move" ${kind === 'move' ? 'checked' : ''}>${ICON.navigate} 移動</label><label><input type="radio" name="kind" value="action" ${kind === 'action' ? 'checked' : ''}>${ICON.check} 行動</label></div>
     ${item('日程', `<select class="field" name="day">${Array.from({ length: t.days }, (_, i) => `<option value="${i + 1}" ${(s?.day || state.activeDay) === i + 1 ? 'selected' : ''}>${i + 1}日目</option>`).join('')}</select>`)}
-    <div class="flex"><div class="formitem grow"><label>${kind === 'move' ? '出発' : '時間'} *</label><input class="field" type="time" required name="time" value="${esc(s?.time || '12:00')}"></div><div class="formitem grow" data-for="move"><label>到着</label><input class="field" type="time" name="endTime" value="${esc(s?.endTime || '')}"></div></div>
+    <div class="flex"><div class="formitem grow"><label>${kind === 'move' ? '出発' : '時間'} *</label><input class="field" type="time" required name="time" value="${esc(s?.time || '12:00')}"></div><div class="formitem grow" data-for="move"><label>到着</label><input class="field" type="time" name="endTime" value="${esc(s?.endTime || '')}"></div><div class="formitem grow" data-for="move"><label for="moveDur">所要（分）</label><input id="moveDur" class="field" type="number" inputmode="numeric" min="1" max="1439" name="duration" placeholder="例：30" value="${s?.endTime && toMinutes(s.endTime) > toMinutes(s.time) ? toMinutes(s.endTime) - toMinutes(s.time) : ''}"></div></div>
     ${item('タイトル *', `<input class="field" name="title" required maxlength="100" value="${esc(s?.title || (kind === 'move' ? '移動' : kind === 'action' ? ACTIONS.find((a) => a.id === (s?.act || 'checkin')).label : '立ち寄り'))}">`)}
     <div class="formitem" data-for="action"><label>行動の種類</label><div class="modes">${ACTIONS.map((a) => `<label class="modepill"><input type="radio" name="act" value="${a.id}" ${(s?.act || 'checkin') === a.id ? 'checked' : ''}><span>${a.emoji} ${a.label}</span></label>`).join('')}</div></div>
-    <div class="formitem" data-for="move"><label>移動手段</label><div class="modes">${MODES.map((m) => `<label class="modepill"><input type="radio" name="mode" value="${m.id}" ${(s?.mode || 'car') === m.id ? 'checked' : ''}><span>${esc(m.emoji)} ${esc(m.label)}</span></label>`).join('')}</div></div>
+    <div class="formitem" data-for="move"><label>移動手段</label><div class="modes emojionly" role="radiogroup" aria-label="移動手段">${MODES.map((m) => `<label class="modepill" title="${esc(m.label)}"><input type="radio" name="mode" value="${m.id}" aria-label="${esc(m.label)}" ${(s?.mode || 'car') === m.id ? 'checked' : ''}><span>${esc(m.emoji)}</span></label>`).join('')}</div></div>
     <div class="formitem placepick" data-for="stop action" data-placepick><label for="placeQuery">場所</label>
     <input type="hidden" name="placeId" value="${esc(placeId)}"><input type="hidden" name="newPlace" value="">
     <div class="placechip" data-placechip></div>
@@ -291,6 +291,25 @@ export function stopForm(t, s, presetPlaceId = '') {
   sync();
   setupPlacePick(t, form);
   setupOptionsPick(t, form);
+  // 出発・到着・所要時間は、つながっている(2つを入れれば、残りが決まる)
+  const syncTimes = (e) => {
+    const el = form.elements;
+    const start = toMinutes(el.time.value);
+    if (start === null) return;
+    const name = e.target.name;
+    if (name === 'duration' || name === 'time') {
+      const dur = Number(el.duration.value);
+      if (dur > 0) {
+        const end = Math.min(1439, start + dur);
+        el.endTime.value = fromMinutes(end);
+        if (start + dur > 1439) el.duration.value = String(end - start);
+      } else if (name === 'duration') el.endTime.value = '';
+    } else if (name === 'endTime') {
+      const end = toMinutes(el.endTime.value);
+      el.duration.value = end !== null && end > start ? String(end - start) : '';
+    }
+  };
+  form.addEventListener('input', syncTimes);
 }
 
 // 場所の検索と自由入力。候補は端末の中の「行きたい場所」だけから探す(通信しない)
@@ -505,6 +524,23 @@ export function genreEditForm(t, key) {
         if (emoji === CAT_EMOJI[builtin]) delete t.catEmoji[builtin];
         else t.catEmoji[builtin] = emoji;
       }
+      touch(t);
+      hooks.render();
+    },
+  );
+}
+
+// 日ごとのひとこと(ヘッダーの吹き出しに出る)。空にして保存すると消える
+export function dayNoteForm(t, day) {
+  openModal(
+    `<form id="modalForm"><h2>${day}日目のひとこと</h2><div class="formgrid">
+    ${item('ひとこと', `<input class="field" name="note" maxlength="30" value="${esc(t.dayNotes?.[day] || '')}" placeholder="例：今日は燕三条エリア">`)}
+    </div>${actions('閉じる', '保存')}</form>`,
+    (f) => {
+      const text = formVal(f, 'note').slice(0, 30);
+      t.dayNotes = { ...(t.dayNotes || {}) };
+      if (text) t.dayNotes[day] = text;
+      else delete t.dayNotes[day];
       touch(t);
       hooks.render();
     },

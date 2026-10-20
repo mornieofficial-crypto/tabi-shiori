@@ -145,6 +145,12 @@ export function normalizeTrip(raw) {
     const e = lightSkin(str(t.catEmoji?.[c], 8));
     if (e && e !== CAT_EMOJI[c]) catEmoji[c] = e;
   }
+  // 日ごとのひとこと(今日は燕三条エリア、など)。1日目〜N日目だけ
+  const dayNotes = {};
+  for (let d = 1; d <= days; d++) {
+    const text = str(t.dayNotes?.[d], 30).trim();
+    if (text) dayNotes[d] = text;
+  }
   const placesSrc = (Array.isArray(t.places) ? t.places : []).slice(0, LIMITS.places);
   const memberIds = members.map((m) => m.id);
   const usedP = new Set();
@@ -193,6 +199,7 @@ export function normalizeTrip(raw) {
     backgroundPhoto: isPhoto(t.backgroundPhoto) ? t.backgroundPhoto : '',
     genres,
     catEmoji,
+    dayNotes,
     places,
     schedule,
     checklist,

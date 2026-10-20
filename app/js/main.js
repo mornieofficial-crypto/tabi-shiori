@@ -1,6 +1,6 @@
 import { state, hooks, current, getPlace, touch, flush, load, addTrip, removeTrip, selectTrip, saveSettings, applyTheme } from './state.js';
-import { renderScreen, renderNavInner, optionsOpen, placeListHtml } from './views.js';
-import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, genreEditForm, placeDetail } from './forms.js';
+import { renderScreen, renderNavInner, optionsOpen, placeListHtml, talkHtml } from './views.js';
+import { tripForm, memberForm, placeForm, stopForm, dayPickForm, checkForm, bookingForm, themeForm, navChooser, confirmForm, syncJoinForm, genreForm, genreEditForm, dayNoteForm, placeDetail } from './forms.js';
 import { closeModal, modalOpen, scrollLocked, modalHooks, toast, download, shareFile, shareLinkText, handleEmojiClick } from './ui.js';
 import { loadLinks, startPolling, scheduleSync, syncTrip, startSync, stopSync, linkUrl, inviteFile, parseInviteData, normalizeRelay, parseSyncLink, links } from './sync.js';
 import { serializeTrip, serializeBackup, parseImport, ImportError, MAX_IMPORT_BYTES } from './io.js';
@@ -295,6 +295,7 @@ document.addEventListener('click', (e) => {
   const t = current();
   switch (a) {
     case 'close': return closeModal();
+    case 'edit-daynote': return t && dayNoteForm(t, Number(b.dataset.noteday) || state.activeDay);
     case 'dock-add': {
       if (!t) return;
       if (state.tab === 'schedule') return stopForm(t, null);
@@ -667,3 +668,14 @@ addEventListener('scroll', () => {
   if (y > 40) document.body.classList.add('scrolled');
   else if (y < 8) document.body.classList.remove('scrolled');
 }, { passive: true });
+
+// 吹き出しの言葉を、時間がたったら入れ替える(出発までの言葉 ⇄ その日のひとこと)
+setInterval(() => {
+  const t = current();
+  const old = document.querySelector('.tripheader .talk');
+  if (!t || !old || state.view !== 'trip' || modalOpen()) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = talkHtml(t);
+  const next = tmp.firstElementChild;
+  if (next && next.outerHTML !== old.outerHTML) old.replaceWith(next);
+}, 20000);
