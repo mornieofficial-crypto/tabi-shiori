@@ -16,7 +16,7 @@ function forShare(trip) {
     background: trip.background === 'photo' ? 'plain' : trip.background,
     backgroundPhoto: '',
     places: trip.places.map((p) => ({ ...p, photo: '' })),
-    members: trip.members.map((m) => ({ ...m, birthday: '', colorAuto: false })),
+    members: trip.members.map((m) => ({ ...m, birthday: '', colorAuto: false, photo: '' })),
   };
 }
 

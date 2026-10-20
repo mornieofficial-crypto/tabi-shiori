@@ -5,11 +5,11 @@ import { state, hooks, touch, addTrip, getPlace, getMember, saveSettings } from 
 import { birthdayColor, isHex } from './color.js';
 import { MODES, toMinutes, fromMinutes } from './transit.js';
 import { navTargets } from './nav.js';
-import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage } from './ui.js';
+import { openModal, closeModal, toast, emojiField, formVal, formInt, resizeImage, resizeCutout } from './ui.js';
 import { avatar, placeEmoji } from './views.js';
 import { ICON } from './icons.js';
 import { peekLink, joinTrip } from './sync.js';
-import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
+import { BACKGROUNDS, BACKGROUND_IDS, isPhoto, isCutout, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 const err = (form, msg) => {
   // エラー欄は、保存ボタンの近く(モーダルの上部)に移してあるので、モーダル全体から探す
@@ -52,7 +52,7 @@ export function tripForm(t) {
         const trip = newTrip({ name, destination: formVal(f, 'destination'), date, days, members: [0, 1].map((i) => {
           // ふたりのプロフィールがあれば、アイコン・誕生日・色も引き継ぐ(名前は、この画面で変えた内容を優先)
           const p = prof[i];
-          const base = p ? { emoji: p.emoji, birthday: p.birthday, color: p.color, colorAuto: p.colorAuto } : {};
+          const base = p ? { emoji: p.emoji, photo: p.photo, birthday: p.birthday, color: p.color, colorAuto: p.colorAuto } : {};
           return { ...base, name: formVal(f, 'p' + i) || p?.name || (i === 0 ? 'わたし' : '同行者') };
         }),
       });
@@ -75,10 +75,12 @@ export function memberForm(t, m, onDelete, opts = {}) {
   const editing = !!m;
   const bd = /^(\d{2})-(\d{2})$/.exec(m?.birthday || '');
   const color = m?.color || '#3b6ea5';
+  let photo = m?.photo || '';
   openModal(
     `<form id="modalForm"><h2>${isProfile ? `ふたりのプロフィール(${profileIndex + 1}人目)` : editing ? 'メンバーを編集' : 'メンバーを追加'}</h2><div class="formgrid">
     ${item('名前 *', `<input class="field" name="name" required maxlength="40" value="${esc(m?.name || '')}">`)}
     ${item('アイコン', emojiField('emoji', m?.emoji || '🐻', { label: 'アイコン' }))}
+    ${item('写真（任意）', `<div class="flex"><span class="thumb big cutout" id="memberPhotoTile"></span><label class="btn tiny">${ICON.camera} 写真を選ぶ<input type="file" id="memberPhotoFile" accept="image/*" hidden></label><button type="button" class="btn tiny muted" id="memberPhotoRemove" hidden>外す</button></div><p class="small">写真があれば、アイコンの代わりに出ます。背景が透明な画像(切り抜き)は、透明のまま使えます。この端末の中だけに保存し、相手の端末や共有ファイルには出ません。</p>`)}
     ${item('誕生日（任意・この端末にだけ保存）', `<div class="flex"><select class="field half" name="bm" aria-label="月">${monthOpts(bd ? +bd[1] : 0)}</select><select class="field half" name="bd" aria-label="日">${dayOpts(bd ? +bd[2] : 0)}</select></div>`)}
     <label class="check inline"><input type="checkbox" name="auto" ${!m?.birthday || m.colorAuto ? 'checked' : ''}><span>誕生日から色を自動で決める</span></label>
     ${item('色', `<div class="flex"><input type="color" class="colorinput big" name="color" value="${esc(color)}" aria-label="色"><span id="colorHint" class="small"></span></div>`)}
@@ -92,7 +94,7 @@ export function memberForm(t, m, onDelete, opts = {}) {
       const birthday = bm ? `${bm.padStart(2, '0')}-${bdv.padStart(2, '0')}` : '';
       if (birthday && !birthdayColor(birthday)) return err(form, 'その日付は存在しません');
       const auto = !!f.get('auto') && !!birthday;
-      const raw = { id: m?.id, name, emoji: formVal(f, 'emoji'), birthday, colorAuto: auto, color: formVal(f, 'color') };
+      const raw = { id: m?.id, name, emoji: formVal(f, 'emoji'), photo, birthday, colorAuto: auto, color: formVal(f, 'color') };
       if (!auto && !isHex(raw.color)) return err(form, '色が正しくありません');
       if (isProfile) {
         const next = normalizeMember({ ...raw, id: 'profile' + profileIndex }, profileIndex);
@@ -124,6 +126,31 @@ export function memberForm(t, m, onDelete, opts = {}) {
     if (auto) el.color.value = c;
     el.color.style.opacity = auto ? '.5' : '';
   };
+  const tile = form.querySelector('#memberPhotoTile');
+  const removeBtn = form.querySelector('#memberPhotoRemove');
+  const showPhoto = () => {
+    tile.style.backgroundImage = photo ? `url("${photo}")` : '';
+    tile.innerHTML = photo ? '' : ICON.camera;
+    removeBtn.hidden = !photo;
+  };
+  showPhoto();
+  form.querySelector('#memberPhotoFile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const url = await resizeCutout(file);
+      if (!isCutout(url)) throw new Error('invalid');
+      photo = url;
+      showPhoto();
+    } catch {
+      err(form, 'この写真は読み込めませんでした。別の写真で試してね');
+    }
+  });
+  removeBtn.addEventListener('click', () => {
+    photo = '';
+    showPhoto();
+  });
   form.addEventListener('change', sync);
   sync();
   form.querySelector('[data-action="remove-member-confirm"]')?.addEventListener('click', () => {

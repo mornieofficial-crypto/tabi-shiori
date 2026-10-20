@@ -18,3 +18,7 @@ export const PHOTO_MAX_LENGTH = 700000;
 export const PLACE_PHOTO_MAX_LENGTH = 200000;
 export const isPhoto = (s, max = PHOTO_MAX_LENGTH) => typeof s === 'string' && s.length <= max && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(s);
 export const backgroundLabel = (id) => (id === 'photo' ? '写真' : BACKGROUNDS.find((b) => b.id === id)?.label || 'シンプル');
+
+// メンバーの写真(背景が透明な切り抜きも使える PNG)。小さく縮めて、端末の中にだけ保存する
+export const MEMBER_PHOTO_MAX_LENGTH = 160000;
+export const isCutout = (s, max = MEMBER_PHOTO_MAX_LENGTH) => typeof s === 'string' && s.length <= max && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(s);

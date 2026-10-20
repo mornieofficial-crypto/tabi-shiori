@@ -24,6 +24,7 @@ export { placeEmoji };
 
 export function avatar(m) {
   const c = badgeColors(m.color);
+  if (m.photo) return `<span class="avatar photo" style="background-image:url('${m.photo}')" role="img" aria-label="${esc(m.name)}"></span>`;
   return `<span class="avatar" style="background:${c.bg};border-color:${c.border}">${esc(m.emoji)}</span>`;
 }
 

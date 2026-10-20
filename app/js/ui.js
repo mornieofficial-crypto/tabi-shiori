@@ -113,6 +113,28 @@ export function download(filename, text) {
 }
 
 // 写真を縮小してJPEGに作り直す。作り直すことで、撮影場所などのメタデータは取り除かれる。
+// 背景の透明さを残すため、PNG で小さく縮める(メンバーの写真用)。大きすぎるときは、寸法を小さくして作り直す
+export async function resizeCutout(file, maxLength = 160000) {
+  if (!file || !String(file.type).startsWith('image/') || file.size > 25 * 1024 * 1024) throw new Error('bad image');
+  const bmp = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  for (const side of [256, 192, 144, 112]) {
+    const scale = Math.min(1, side / Math.max(bmp.width, bmp.height));
+    canvas.width = Math.max(1, Math.round(bmp.width * scale));
+    canvas.height = Math.max(1, Math.round(bmp.height * scale));
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const url = canvas.toDataURL('image/png');
+    if (url.length <= maxLength) {
+      bmp.close?.();
+      return url;
+    }
+  }
+  bmp.close?.();
+  throw new Error('too large');
+}
+
 export async function resizeImage(file, maxSide = 1200, maxLength = 600000) {
   if (!file || !String(file.type).startsWith('image/') || file.size > 25 * 1024 * 1024) throw new Error('bad image');
   const bmp = await createImageBitmap(file);

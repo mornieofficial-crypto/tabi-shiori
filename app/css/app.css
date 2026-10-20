@@ -773,3 +773,8 @@ button.votepill:active { transform: scale(.95); }
 .stop .iconbtn[data-action="edit-stop"]:active { background: var(--tint); color: var(--accent-ink); }
 .stop.move .card .spread { top: 11px; }
 .stop.action .actioncard .iconbtn { margin-top: -1px; }
+
+/* メンバーの写真(背景が透明な切り抜き): 丸い枠や色の背景を付けず、そのまま出す */
+.avatar.photo { background-color: transparent; background-repeat: no-repeat; background-position: center bottom; background-size: contain; border-color: transparent; box-shadow: none; width: 34px; height: 34px; }
+.tripheader .avatar.photo { box-shadow: none; filter: drop-shadow(0 1px 2px rgba(10, 20, 60, .25)); }
+.thumb.cutout { background-color: #fff; background-image: linear-gradient(45deg, #e8ecf0 25%, transparent 25%, transparent 75%, #e8ecf0 75%), linear-gradient(45deg, #e8ecf0 25%, transparent 25%, transparent 75%, #e8ecf0 75%); background-size: 12px 12px; background-position: 0 0, 6px 6px; }

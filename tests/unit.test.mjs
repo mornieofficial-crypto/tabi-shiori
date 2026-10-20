@@ -314,3 +314,15 @@ test('所要時間: 分 → 時刻・言い方', async () => {
   assert.equal(durationText(120), '2時間');
   assert.equal(durationText(0), '');
 });
+
+test('メンバーの写真: 透明な PNG だけ残り、共有ファイルには出ず、同期にも出ない', async () => {
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg==';
+  const t = normalizeTrip({ days: 1, members: [{ name: 'A', photo: png }, { name: 'B', photo: 'data:image/svg+xml;base64,AAAA' }, { name: 'C', photo: 'http://example.com/x.png' }] });
+  assert.equal(t.members[0].photo, png);
+  assert.equal(t.members[1].photo, '');
+  assert.equal(t.members[2].photo, '');
+  const shared = JSON.parse(serializeTrip(t, { share: true })).trip;
+  assert.equal(shared.members[0].photo, '');
+  assert.equal(JSON.parse(serializeTrip(t)).trip.members[0].photo, png, 'バックアップには入る');
+  assert.equal(normalizeTrip({ days: 1, members: [{ name: 'A', photo: 'data:image/png;base64,' + 'A'.repeat(170000) }] }).members[0].photo, '', '大きすぎる写真は捨てる');
+});

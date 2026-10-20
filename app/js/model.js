@@ -3,7 +3,7 @@
 import { uid, clamp, str, isDateStr, isTimeStr, lightSkin } from './util.js';
 import { isHex, parseBirthday, birthdayColor, PRESET_COLORS } from './color.js';
 import { MODES } from './transit.js';
-import { BACKGROUND_IDS, isPhoto, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
+import { BACKGROUND_IDS, isPhoto, isCutout, PLACE_PHOTO_MAX_LENGTH } from './backgrounds.js';
 
 export const SCHEMA = 2;
 // 夫婦2人で使う前提。2人を超える旅行データを読み込んだ場合は、削除できるようにだけしておく
@@ -55,6 +55,7 @@ export function normalizeMember(raw, i, used = new Set()) {
     birthday,
     color,
     colorAuto,
+    photo: isCutout(m.photo) ? m.photo : '', // 顔写真は、端末の中だけ(同期・共有には出さない)
   };
 }
 

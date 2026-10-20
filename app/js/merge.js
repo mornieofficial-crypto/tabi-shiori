@@ -6,7 +6,7 @@ import { normalizeTrip } from './model.js';
 const SCALARS = ['name', 'destination', 'date', 'days', 'theme', 'notes', 'background', 'catEmoji', 'dayNotes'];
 const COLLS = ['members', 'genres', 'places', 'schedule', 'checklist', 'bookings'];
 // 端末の中にだけ置く項目
-const LOCAL_ONLY = { members: ['birthday', 'colorAuto'], places: ['photo'] };
+const LOCAL_ONLY = { members: ['birthday', 'colorAuto', 'photo'], places: ['photo'] };
 
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
